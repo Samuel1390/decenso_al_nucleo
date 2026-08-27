@@ -1,0 +1,7 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+#define MAX_ENEMY_INVENTORY 5
+#define MAX_INVENTORY 32
+#define MAX_STRING 100
+
+#endif CONSTANTS_H

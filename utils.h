@@ -147,11 +147,11 @@ void use_obj_fn(ObjectData* obj, Character* target) {
 }
 
 // Abre y gestiona el inventario de un personaje
-void open_inventory(Character* c, bool in_battle, Character* enemy) {
+char* open_inventory(Character* c, bool in_battle, Character* enemy) {
     if (c->inventory_count == 0) {
         printf("\nEl inventario está vacío.\n");
         enter_to_continue();
-        return;
+        return "Salir";
     }
 
     const char* inv_ops[MAX_INVENTORY + 1];
@@ -161,7 +161,7 @@ void open_inventory(Character* c, bool in_battle, Character* enemy) {
     inv_ops[c->inventory_count] = "Salir";
 
     int chosen = menu(inv_ops, c->inventory_count + 1);
-    if (chosen == c->inventory_count + 1) return;
+    if (chosen == c->inventory_count + 1) return "Salir";
 
     int selected_index = chosen - 1;
     ObjectData selected_item = c->inventory[selected_index];
@@ -184,9 +184,9 @@ void open_inventory(Character* c, bool in_battle, Character* enemy) {
             // Propagar la cantidad modificada de vuelta al inventario real
             set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
             if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
-            return;
+            return "Usar";
         } else if (accion == 2) {
-            open_inventory(c, in_battle, enemy);
+            return open_inventory(c, in_battle, enemy);
         }
     } else {
         const char* peace_ops[] = {"Usar", "Soltar", "Volver"};
@@ -199,10 +199,11 @@ void open_inventory(Character* c, bool in_battle, Character* enemy) {
                 set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
                 set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
                 if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
+                return "Usar";
             } else {
                 printf("\nNo puedes usar este objeto fuera de combate.\n");
                 enter_to_continue();
-                open_inventory(c, in_battle, enemy);
+                return open_inventory(c, in_battle, enemy);
             }
         } else if (accion == 2) {
             int amount_to_drop = 1;
@@ -211,8 +212,7 @@ void open_inventory(Character* c, bool in_battle, Character* enemy) {
                 amount_to_drop = get_int("Cantidad a soltar: ");
                 if (amount_to_drop <= 0) {
                     printf("Cancelado.\n");
-                    open_inventory(c, in_battle, enemy);
-                    return;
+                    return open_inventory(c, in_battle, enemy);
                 }
                 if (amount_to_drop > get_obj_quantity(&selected_item)) {
                     amount_to_drop = get_obj_quantity(&selected_item);
@@ -223,9 +223,9 @@ void open_inventory(Character* c, bool in_battle, Character* enemy) {
             printf("\nHas soltado %s (x%d)\n", get_obj_name(&selected_item), amount_to_drop);
             if (new_qty <= 0) remove_item(c, selected_index);
             enter_to_continue();
-            open_inventory(c, in_battle, enemy);
+            return open_inventory(c, in_battle, enemy);
         } else if (accion == 3) {
-            open_inventory(c, in_battle, enemy);
+            return open_inventory(c, in_battle, enemy);
         }
     }
 }
@@ -345,6 +345,53 @@ ObjectData drop_random_item(Character* c) {
 }
 
 // ==========================================
+// ESTADÍSTICAS DEL JUGADOR Y ENEMIGO
+// ==========================================
+
+void show_player_stats(Player* p) {
+    Character* c = &p->base_char;
+    printf("--- Estadísticas de %s ---\n", c->name);
+    draw_progress_bar(c->health, c->hp_max, "HP");
+    draw_progress_bar((float)c->xp_points, (float)c->xp_threshold, "XP");
+    printf("Nivel: %d\n",              c->xp_level);
+    printf("XP para subir de nivel: %d\n", c->xp_threshold);
+    printf("Ataque: %d\n",             c->attack);
+    if (c->defense != NULL) {
+        printf("Defensa: %.0f%% reducción de daño físico\n", c->defense->resistance * 100.0f);
+    } else {
+        printf("Defensa: sin armadura\n");
+    }
+    if (c->weapon != NULL) {
+        printf("Arma: %s (ataque total: %d pts)\n",
+               c->weapon->base_item.name, calculate_attack(c));
+    } else {
+        printf("Arma: desarmado\n");
+    }
+    printf("Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
+}
+
+void show_enemy_stats(Enemy* p) {
+    Character* c = &p->base_char;
+    printf("--- Estadísticas de %s ---\n", c->name);
+    draw_progress_bar(c->health, c->hp_max, "HP");
+    printf("Rango: %c\n", p->rank);
+    printf("Nivel: %d\n", c->xp_level);
+    printf("Ataque: %d\n", c->attack);
+    if (c->defense != NULL) {
+        printf("Defensa: %.0f%% reducción de daño físico\n", c->defense->resistance * 100.0f);
+    } else {
+        printf("Defensa: sin armadura\n");
+    }
+    if (c->weapon != NULL) {
+        printf("Arma: %s (ataque total: %d pts)\n",
+               c->weapon->base_item.name, calculate_attack(c));
+    } else {
+        printf("Arma: desarmado\n");
+    }
+    printf("Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
+}
+
+// ==========================================
 // COMBATE
 // ==========================================
 
@@ -362,8 +409,8 @@ void combat(Player* p_player, Enemy* p_enemy) {
         if ((first_user == 'p' && turn_counter % 2 == 1) ||
             (first_user == 'e' && turn_counter % 2 == 0)) {
             // Turno del jugador
-            const char* options[] = {"Atacar", "Abrir inventario", "Escapar"};
-            int selected_op = menu(options, 3);
+            const char* options[] = {"Atacar", "Abrir inventario", "Ver estadísticas del enemigo", "Escapar"};
+            int selected_op = menu(options, 4);
             switch (selected_op) {
                 case 1:
                     printf("%s ataca a %s\n", player_c->name, enemy_c->name);
@@ -372,9 +419,18 @@ void combat(Player* p_player, Enemy* p_enemy) {
                     enter_to_continue();
                     break;
                 case 2:
-                    open_inventory(player_c, true, enemy_c);
-                    break;
+                    char* action = open_inventory(player_c, true, enemy_c);
+                    if (strcmp(action, "Salir") == 0) {
+                        continue;
+                    } else {
+                        break;
+                    }   
                 case 3: {
+                    show_enemy_stats(p_enemy);
+                    enter_to_continue();
+                    continue;
+                }
+                case 4: {
                     float esc_prob = escape_chance(player_c->attack, enemy_c->attack);
                     can_escape = (get_random(0, 1) <= esc_prob);
                     if (can_escape) {
@@ -410,30 +466,5 @@ void combat(Player* p_player, Enemy* p_enemy) {
     } while (player_c->health > 0 && enemy_c->health > 0 && !can_escape);
 }
 
-// ==========================================
-// ESTADÍSTICAS DEL JUGADOR
-// ==========================================
-
-void show_player_stats(Player* p) {
-    Character* c = &p->base_char;
-    printf("--- Estadísticas de %s ---\n", c->name);
-    draw_progress_bar(c->health, c->hp_max, "HP");
-    draw_progress_bar((float)c->xp_points, (float)c->xp_threshold, "XP");
-    printf("Nivel: %d\n",              c->xp_level);
-    printf("XP para subir de nivel: %d\n", c->xp_threshold);
-    printf("Ataque: %d\n",             c->attack);
-    if (c->defense != NULL) {
-        printf("Defensa: %.0f%% reducción de daño físico\n", c->defense->resistance * 100.0f);
-    } else {
-        printf("Defensa: sin armadura\n");
-    }
-    if (c->weapon != NULL) {
-        printf("Arma: %s (ataque total: %d pts)\n",
-               c->weapon->base_item.name, calculate_attack(c));
-    } else {
-        printf("Arma: desarmado\n");
-    }
-    printf("Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
-}
 
 #endif // UTILS_H

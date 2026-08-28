@@ -162,6 +162,9 @@ int main(void) {
     add_item(&player.base_char, &health_potion_I,   health_potion_I.data.item.name);
     add_item(&player.base_char, &health_potion_II,  health_potion_II.data.item.name);
 
+    show_player_stats(&player);
+    enter_to_continue();
+
     // --- Crear enemigos ---
     Enemy enemy1, enemy2;
 
@@ -171,7 +174,7 @@ int main(void) {
                    /*defense*/ &iron_armor_data,
                    /*xp_level*/ 1, /*xp_threshold*/ 100, /*xp_points*/ 0,
                    /*weapon*/  &iron_sword_data);
-    enemy1.range = 'D';
+    enemy1.rank = 'D';
     add_item(&enemy1.base_char, &health_potion_I, health_potion_I.data.item.name);
 
     init_character(&enemy2.base_char, "Goblin",
@@ -180,7 +183,7 @@ int main(void) {
                    /*defense*/ &iron_armor_data,
                    /*xp_level*/ 2, /*xp_threshold*/ 110, /*xp_points*/ 0,
                    /*weapon*/  &iron_sword_data);
-    enemy2.range = 'C';
+    enemy2.rank = 'C';
     add_item(&enemy2.base_char, &health_potion_I, health_potion_I.data.item.name);
 
     // --- Mostrar stats iniciales ---

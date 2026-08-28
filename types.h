@@ -100,7 +100,7 @@ typedef struct {
 
 typedef struct {
     Character base_char;
-    char range;  // Rareza del enemigo: 'S' > 'A' > 'B' > 'C' > 'D'
+    char rank;  // Rareza del enemigo: 'S' > 'A' > 'B' > 'C' > 'D'
 } Enemy;
 
 #endif // TYPES_H

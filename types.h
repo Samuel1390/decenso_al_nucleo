@@ -26,74 +26,81 @@ typedef enum {
 
 // ==========================================
 // 2. DECLARACIONES ADELANTADAS (Forward Declarations)
-// Permiten romper el bucle de dependencia circular
 // ==========================================
 
 typedef struct Character Character;
-typedef struct Item Item;
+typedef struct Item      Item;
+typedef struct ObjectData ObjectData;  // Forward declaration necesaria para Character
 
+// ==========================================
 // 3. PUNTEROS A FUNCIÓN
+// ==========================================
 
-typedef void (*ItemAction)(Character* target, Item* item);
+typedef void (*ItemAction)(Character* target);
 
+// ==========================================
 // 4. ESTRUCTURAS PRINCIPALES
+// ==========================================
 
 struct Item {
-    ItemType type;
-    char name[MAX_STRING];
-    char description[MAX_STRING];
-    int quantity;
-    bool can_use_outside_battle;
-    TargetType target_type; // Define qué entidad se ve afectada
-    int id; // Identificador único del objeto
-    ItemAction use_function; // Puntero a función para aplicar el efecto
+    ItemType  type;
+    char      name[MAX_STRING];
+    char      description[MAX_STRING + 200];
+    int       quantity;
+    bool      can_use_outside_battle;
+    TargetType target_type;
+    int       id;
+    ItemAction use_function;
 };
 
 typedef struct {
-    Item base_item;
-    float damage; // Numero entre 0 e infinito, amplifica el ataque
-    int durability; // Usos restantes antes de romperse, si es -1 es infinito
+    Item  base_item;
+    float damage;      // Amplifica el ataque (0 = sin bono, infinito = máximo)
+    int   durability;  // Usos restantes; -1 = infinito
 } Weapon;
 
 typedef struct {
-    Item base_item;
-    float resistance; // Para recibir ataques físicos, entre 0 y 1 (0% a 100%)
-    int durability; // Usos restantes antes de romperse, si es -1 es infinito
+    Item  base_item;
+    float resistance;  // Reducción de daño físico (0.0 a 1.0)
+    int   durability;  // Usos restantes; -1 = infinito
 } Armor;
 
-struct Character {
-    char name[MAX_STRING];
-    int attack;
-    int health;
-    int hp_max;
-    Armor* defense;
-    int xp_level;
-    int xp_threshold;
-    int xp_points;
-    Weapon* weapon;
+// ObjectData se define ANTES de Character para que Character pueda usarla
+struct ObjectData {
+    ItemType type;
+    union {
+        Item   item;
+        Weapon weapon;
+        Armor  armor;
+    } data;
 };
 
-typedef struct {
-    ItemType type;
-    int id;
-    union {
-        Item item;
-        Weapon weapon;
-        Armor armor;
-    } data;
-} ObjectData;
+// Character contiene el inventario directamente (válido para Player y Enemy)
+struct Character {
+    char       name[MAX_STRING];
+    int        attack;
+    int        health;
+    int        hp_max;
+    Armor*     defense;
+    int        xp_level;
+    int        xp_threshold;
+    int        xp_points;
+    Weapon*    weapon;
+    ObjectData inventory[MAX_INVENTORY];
+    int        inventory_count;
+};
+
+// ==========================================
+// 5. TIPOS COMPUESTOS
+// ==========================================
 
 typedef struct {
     Character base_char;
-    ObjectData inventory[MAX_INVENTORY];
-    int inventory_count;
 } Player;
 
 typedef struct {
     Character base_char;
-    ObjectData inventory[MAX_ENEMY_INVENTORY];
-    int inventory_count;
-    char range; // Rango del enemigo: 'S', 'A', 'B', 'C', 'D'
+    char range;  // Rareza del enemigo: 'S' > 'A' > 'B' > 'C' > 'D'
 } Enemy;
 
 #endif // TYPES_H

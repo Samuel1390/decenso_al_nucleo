@@ -7,88 +7,188 @@
 #include "types.h"
 #include "constants.h"
 
+// ==========================================
+// CONTADOR GLOBAL DE IDs
+// ==========================================
 
-int next_id = 1;
+static int next_id = 1;
 
-ObjectData create_iron_sword() {
-    Weapon base_iron_sword = {TYPE_WEAPON,{"Espada de hierro", "Arma cuerpo a cuerpo muy popular y eficaz"}, 3, 100};
-    ObjectData iron_sword;
-    iron_sword.type = TYPE_WEAPON;
-    iron_sword.data.weapon.base_item.id = next_id++;
-    iron_sword.data.weapon = base_iron_sword;
-    void equip_sword(Player* player) {
-        Weapon previous_weapon = player->base_char.weapon;
-        if (previous_weapon) {
-            // Si ya habia un arma equipada antes la intercambiamos por la nueva
-            int free_idx = get_idx_from_id(player, iron_sword.data.weapon.base_item.id);
-            remove_item(player, free_idx);
-            player->base_char.weapon = &iron_sword.data.weapon;
-            // Reconstruimos el arma previa
-            ObjectData prev_w;
-            prev_w.type = TYPE_WEAPON;
-            prev_w.data.weapon = *previous_weapon;
-            player->inventory[free_idx] = prev_w;
-            printf("Se ha intercambiado %s por %s\n", previous_weapon->base_item.name, iron_sword.base_item.name);
-            enter_to_continue();
-        }
-        player->base_char.weapon = &iron_sword.data.weapon;
-        printf("%s se ha equipado con %s\n", player->base_char.name, iron_sword.base_item.name);
-        enter_to_continue();
-    }
+// ==========================================
+// FUNCIONES DE USO DE ÍTEMS
+// (deben ser funciones normales, no anidadas,
+//  porque las funciones anidadas de GCC no
+//  soportan closures reales en MinGW/Windows)
+// ==========================================
+
+// --- Pociones de salud ---
+
+void use_health_potion_40(Character* target) {
+    float pct = 0.40f;
+    int recovered = (int)(target->hp_max * pct);
+    target->health = (int)min_f((float)(target->health + recovered), (float)target->hp_max);
+    printf("%s ha recuperado %d puntos de salud\n", target->name, recovered);
+    draw_progress_bar(target->health, target->hp_max, "HP");
+    enter_to_continue();
 }
 
+void use_health_potion_70(Character* target) {
+    float pct = 0.70f;
+    int recovered = (int)(target->hp_max * pct);
+    target->health = (int)min_f((float)(target->health + recovered), (float)target->hp_max);
+    printf("%s ha recuperado %d puntos de salud\n", target->name, recovered);
+    draw_progress_bar(target->health, target->hp_max, "HP");
+    enter_to_continue();
+}
 
-ObjectData  create_healh_potion(int health_percentage, char* subffix, int quantity) {
-    int quant = quantity;
-    if (quant == NULL || quant <= 0) {
-        quant = 1;
-    }
-    char name[20] = strcat("pocion de salud ", subffix);
-    char description[100] = strcat("Restaura en un ", health_percentage"% la salud del personaje");
+// --- Equipar espada de hierro ---
+
+void equip_iron_sword(Character* c) {
+    // NOTA: el arma real debe ser pasada por contexto externo.
+    // Esta función marca visualmente el equipamiento; la asignación
+    // de c->weapon se hace directamente desde main/create_iron_sword.
+    printf("%s ha equipado la Espada de hierro.\n", c->name);
+    enter_to_continue();
+}
+
+// --- Equipar armadura de hierro ---
+
+void equip_iron_armor(Character* c) {
+    printf("%s ha equipado la Armadura de hierro.\n", c->name);
+    enter_to_continue();
+}
+
+// ==========================================
+// FACTORÍAS DE ÍTEMS
+// ==========================================
+
+ObjectData create_iron_sword(Weapon* out_weapon) {
+    Weapon w;
+    w.base_item.type               = TYPE_WEAPON;
+    w.base_item.id                 = next_id++;
+    strncpy(w.base_item.name,        "Espada de hierro", MAX_STRING - 1);
+    strncpy(w.base_item.description, "Arma cuerpo a cuerpo muy popular y eficaz", MAX_STRING + 199);
+    w.base_item.quantity           = 1;
+    w.base_item.can_use_outside_battle = false;
+    w.base_item.target_type        = TARGET_ENEMY;
+    w.base_item.use_function       = equip_iron_sword;
+    w.damage                       = 3.0f;
+    w.durability                   = 100;
+
+    *out_weapon = w;           // Escribir en el buffer del llamador
+
+    ObjectData obj;
+    obj.type         = TYPE_WEAPON;
+    obj.data.weapon  = w;
+    return obj;
+}
+
+ObjectData create_iron_armor(Armor* out_armor) {
+    Armor a;
+    a.base_item.type               = TYPE_ARMOR;
+    a.base_item.id                 = next_id++;
+    strncpy(a.base_item.name,        "Armadura de hierro", MAX_STRING - 1);
+    strncpy(a.base_item.description, "Armadura que protege el cuerpo de ataques físicos", MAX_STRING + 199);
+    a.base_item.quantity           = 1;
+    a.base_item.can_use_outside_battle = false;
+    a.base_item.target_type        = TARGET_PLAYER;
+    a.base_item.use_function       = equip_iron_armor;
+    a.resistance                   = 0.5f;   // 50% reducción de daño físico
+    a.durability                   = 100;
+
+    *out_armor = a;
+
+    ObjectData obj;
+    obj.type        = TYPE_ARMOR;
+    obj.data.armor  = a;
+    return obj;
+}
+
+ObjectData create_health_potion(int health_percentage, const char* suffix, int quantity) {
     ObjectData potion;
     potion.type = TYPE_CONSUMABLE;
-    potion.data.item.id = next_id++;
-    potion.data.item.name = name;
-    potion.data.item.description = description;
-    potion.data.item.quantity = 1;
-    potion.data.item.can_use_outside_battle = true;
-    potion.data.item.target_type = TARGET_PLAYER;
-    
-    float f_hp = (float)health_percentage / 100.0;
+    potion.data.item.type  = TYPE_CONSUMABLE;
+    potion.data.item.id    = next_id++;
 
-    void use_health_potion(Character* target) {
-        target->health = min(target->health + target->hp_max * f_hp, target->hp_max);
-        printf("%s ha recuperado %d puntos de salud\n", target->name, (int)(target->hp_max * f_hp));
-        draw_progress_bar(target->health, target->hp_max, "HP");
-        enter_to_continue();
+    // Construir nombre y descripción
+    snprintf(potion.data.item.name,        MAX_STRING,
+             "Poción de salud %s",         suffix);
+    snprintf(potion.data.item.description, MAX_STRING + 200,
+             "Restaura en un %d%% la salud del personaje", health_percentage);
+
+    potion.data.item.quantity              = (quantity > 0) ? quantity : 1;
+    potion.data.item.can_use_outside_battle = true;
+    potion.data.item.target_type           = TARGET_PLAYER;
+
+    // Seleccionar función de uso según el porcentaje
+    if (health_percentage <= 40) {
+        potion.data.item.use_function = use_health_potion_40;
+    } else {
+        potion.data.item.use_function = use_health_potion_70;
     }
-    potion.data.item.use_function = use_health_potion;
+
     return potion;
 }
 
-int main(void) {
-    
-    Weapon base_iron_sword = {TYPE_WEAPON,{"Espada de hierro", "Arma cuerpo a cuerpo muy popular y eficaz", 1, true, equip_sword}, 3, 100};
-    // Armor base_iron_armor = {TYPE_ARMOR, {"Armadura de hierro", "Armadura que protege el cuerpo de ataques fisicos", 1, true, equip_armor}, 3, 100};
+// ==========================================
+// MAIN
+// ==========================================
 
-    ObjectData iron_sword;
-    iron_sword.type = TYPE_WEAPON;
-    iron_sword.data.weapon = base_iron_sword;
-    // iron_armor.type = TYPE_ARMOR;
-    // iron_armor.data.armor = base_iron_armor;
-    ObjectData inventory_player[MAX_INVENTORY];
+int main(void) {
+    srand((unsigned int)time(NULL));
+    Weapon iron_sword_data;
+    Armor  iron_armor_data;
+
+    ObjectData iron_sword_obj = create_iron_sword(&iron_sword_data);
+    ObjectData iron_armor_obj = create_iron_armor(&iron_armor_data);
+
+    ObjectData health_potion_I  = create_health_potion(40, "I",  2);
+    ObjectData health_potion_II = create_health_potion(70, "II", 1);
+
+    // --- Crear jugador ---
     Player player;
-    init_character(&player.base_char, "Caballero", 80, 100, 100, NULL, 1, 100, 0, &iron_sword);
-    ObjectData health_potion_I = create_healh_potion(40, "I");
-    ObjectData health_potion_II = create_healh_potion(70, "II");
-    
-    player.inventory[0] = health_potion_I;
-    player.inventory[1] = health_potion_II;
-    player.inventory_count = 2;
-    Character enemy1, enemy2;
-    init_character(&enemy1, "Goblin", 10, 80, 80, NULL, 1, 100, 0, NULL);
-    init_character(&enemy2, "Goblin", 20, 90, 90, NULL, 2, 110, 0, NULL);
+    init_character(&player.base_char, "Caballero",
+                    80, // attack
+                   100, // health
+                   100, // hp_max
+                   &iron_armor_data, // defense
+                   1, // xp_level
+                   100, // xp_threshold
+                   0, // xp_points
+                   &iron_sword_data); // weapon
+
+    // Agregar ítems al inventario del jugador
+    add_item(&player.base_char, &iron_sword_obj,    iron_sword_obj.data.weapon.base_item.name);
+    add_item(&player.base_char, &iron_armor_obj,    iron_armor_obj.data.armor.base_item.name);
+    add_item(&player.base_char, &health_potion_I,   health_potion_I.data.item.name);
+    add_item(&player.base_char, &health_potion_II,  health_potion_II.data.item.name);
+
+    // --- Crear enemigos ---
+    Enemy enemy1, enemy2;
+
+    init_character(&enemy1.base_char, "Goblin",
+                   /*attack*/  10,
+                   /*health*/  80, /*hp_max*/ 80,
+                   /*defense*/ &iron_armor_data,
+                   /*xp_level*/ 1, /*xp_threshold*/ 100, /*xp_points*/ 0,
+                   /*weapon*/  &iron_sword_data);
+    enemy1.range = 'D';
+    add_item(&enemy1.base_char, &health_potion_I, health_potion_I.data.item.name);
+
+    init_character(&enemy2.base_char, "Goblin",
+                   /*attack*/  20,
+                   /*health*/  90, /*hp_max*/ 90,
+                   /*defense*/ &iron_armor_data,
+                   /*xp_level*/ 2, /*xp_threshold*/ 110, /*xp_points*/ 0,
+                   /*weapon*/  &iron_sword_data);
+    enemy2.range = 'C';
+    add_item(&enemy2.base_char, &health_potion_I, health_potion_I.data.item.name);
+
+    // --- Mostrar stats iniciales ---
+    show_player_stats(&player);
+
+    // --- Combates ---
     combat(&player, &enemy1);
     combat(&player, &enemy2);
+
     return 0;
 }

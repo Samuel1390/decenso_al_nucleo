@@ -1,0 +1,32 @@
+# formato: str nombre, int attack, int health, int hp_max, Armor* defense, int xp_level, int xp_threshold, int xp_points, Weapon* weapon, char rank
+1 cave_goblin 25 5 2 D
+2 wandering_skeleton 25 7 0 D
+3 cave_rata 15 2 0 D
+4 zombie_knight 35 10 5 D
+5 strong_goblin 45 10 4 C
+6 skeleton_knight 40 12 2 C
+7 acid_slime 35 15 4 C
+8 poisonous_ spider 30 15 2 C
+9 stone_gargoyle 40 10 10 C
+10 ancient_golem 50 10 15 C
+11 shadow_specter 45 15 5 C
+12 young_basilisk 50 20 10 B
+13 hungry_mimic 45 20 5 B
+14 poisonous_naga 50 25 10 B
+15 orc_berserker 50 25 20 B
+16 labyrinth_minotaur 55 28 20 B
+17 abyss_meduse 50 35 15 B
+18 void_stalker 55 30 25 A
+19 forge_cyclops 70 40 25 A
+20 mystic_yokai 65 45 20 A
+21 carnivorous_plant 50 50 20 A
+22 golden_berserker 75 55 25 A
+23
+24
+25 obsidian_golem 110 40 45 S
+26 ash_dragon 90 65 30 S
+NN beholder_observer 50 30 25 BOSS
+NN core_knight_warden 60 35 30 BOSS
+NN golden_dragon 75 45 30 BOSS
+NN core_hydra 125 80 40 BOSS
+NN lord_of_the_eternal_abyss 155 95 70 BOSS

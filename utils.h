@@ -192,7 +192,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
         const char* peace_ops[] = {"Usar", "Soltar", "Volver"};
         int accion = menu(peace_ops, 3);
 
-        if (accion == 1) {
+        if (accion == 1) { // Pendiente, se debe cambiar por un switch
             if (get_obj_target(&selected_item) == TARGET_PLAYER &&
                 get_obj_can_use_outside_battle(&selected_item)) {
                 use_obj_fn(&selected_item, c);
@@ -218,6 +218,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
                     amount_to_drop = get_obj_quantity(&selected_item);
                 }
             }
+            // nueva cantidad,
             int new_qty = get_obj_quantity(&selected_item) - amount_to_drop;
             set_obj_quantity(&c->inventory[selected_index], new_qty);
             printf("\nHas soltado %s (x%d)\n", get_obj_name(&selected_item), amount_to_drop);
@@ -390,7 +391,30 @@ void show_enemy_stats(Enemy* p) {
     }
     printf("Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
 }
-
+int drop_xp(Enemy* enemy) {
+    float xp_acum = 0;
+    for (int i = enemy->base_char.xp_level; i > 0; i--) {
+        xp_acum += enemy->base_char.xp_threshold * i * 0.1f;
+    }
+    switch(enemy->rank) {
+        case 'D':
+            xp_acum *= 0.4;
+            break;
+        case 'C':
+            xp_acum *= 0.6;
+            break;
+        case 'B':
+            xp_acum *= 0.8;
+            break;
+        case 'A':
+            xp_acum *= 1.4;
+            break;
+        case 'S':
+            xp_acum *= 2;
+            break;
+    }
+    return (int)xp_acum;
+}
 // ==========================================
 // COMBATE
 // ==========================================
@@ -451,20 +475,25 @@ void combat(Player* p_player, Enemy* p_enemy) {
         }
 
         if (player_c->health <= 0) {
-            printf("%s ha muerto\n", player_c->name);
+            printf("HAS MUERTO, fin del juego\n");
+            enter_to_continue();
             return;
         }
         if (enemy_c->health <= 0) {
             printf("%s ha muerto\n", enemy_c->name);
             ObjectData dropped = drop_random_item(enemy_c);
+            int xp_drop = drop_xp(p_enemy);
             char* dropped_name = get_obj_name(&dropped);
             add_item(player_c, &dropped, dropped_name);
+            level_up(player_c, xp_drop);
+            enter_to_continue();
             free(dropped_name);
             return;
         }
         turn_counter++;
     } while (player_c->health > 0 && enemy_c->health > 0 && !can_escape);
 }
+
 
 
 #endif // UTILS_H

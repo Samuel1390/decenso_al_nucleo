@@ -3,5 +3,6 @@
 #define MAX_ENEMY_INVENTORY 5
 #define MAX_INVENTORY 32
 #define MAX_STRING 100
+#define MAX_STACK_AMOUNT 16
 
 #endif CONSTANTS_H

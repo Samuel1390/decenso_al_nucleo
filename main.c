@@ -162,36 +162,50 @@ int main(void) {
     add_item(&player.base_char, &health_potion_I,   health_potion_I.data.item.name);
     add_item(&player.base_char, &health_potion_II,  health_potion_II.data.item.name);
 
-    show_player_stats(&player);
-    enter_to_continue();
-
     // --- Crear enemigos ---
-    Enemy enemy1, enemy2;
+    Enemy enemy1, enemy2, enemy3;
 
     init_character(&enemy1.base_char, "Goblin",
-                   /*attack*/  10,
-                   /*health*/  80, /*hp_max*/ 80,
-                   /*defense*/ &iron_armor_data,
-                   /*xp_level*/ 1, /*xp_threshold*/ 100, /*xp_points*/ 0,
-                   /*weapon*/  &iron_sword_data);
+                     20, // attack
+                     80, // health
+                     80, // hp_max
+                     &iron_armor_data, // defense
+                     1, // xp_level
+                     100, // xp_threshold
+                     0, // xp_points
+                     &iron_sword_data); // weapon
     enemy1.rank = 'D';
     add_item(&enemy1.base_char, &health_potion_I, health_potion_I.data.item.name);
 
     init_character(&enemy2.base_char, "Goblin",
-                   /*attack*/  20,
-                   /*health*/  90, /*hp_max*/ 90,
-                   /*defense*/ &iron_armor_data,
-                   /*xp_level*/ 2, /*xp_threshold*/ 110, /*xp_points*/ 0,
-                   /*weapon*/  &iron_sword_data);
+                     30, // attack
+                     90, // health
+                     90, // hp_max
+                     &iron_armor_data, // defense
+                     4, // xp_level
+                     140, // xp_threshold
+                     50, // xp_points
+                     &iron_sword_data); // weapon
     enemy2.rank = 'C';
     add_item(&enemy2.base_char, &health_potion_I, health_potion_I.data.item.name);
 
-    // --- Mostrar stats iniciales ---
-    show_player_stats(&player);
+    init_character(&enemy3.base_char, "Esqueleto",
+                     32, // attack
+                     90, // health
+                     90, // hp_max
+                     &iron_armor_data, // defense
+                     10, // xp_level
+                     240, // xp_threshold
+                     50, // xp_points
+                     &iron_sword_data); // weapon
+    enemy3.rank = 'B';
+    add_item(&enemy3.base_char, &health_potion_I, health_potion_I.data.item.name);
 
     // --- Combates ---
-    combat(&player, &enemy1);
+    combat(&player, &enemy3);
+    show_player_stats(&player);
     combat(&player, &enemy2);
+    show_player_stats(&player);
 
     return 0;
 }

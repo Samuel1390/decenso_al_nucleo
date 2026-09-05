@@ -74,7 +74,14 @@ struct ObjectData {
         Armor  armor;
     } data;
 };
-
+struct Stats {
+    char name[MAX_STRING];
+    int damage_dealt;
+    int health_points_restored;
+    int cont_kills;
+    int cont_items_used;
+    int rooms_visited;
+}
 // Character contiene el inventario directamente (válido para Player y Enemy)
 struct Character {
     char       name[MAX_STRING];
@@ -88,6 +95,8 @@ struct Character {
     Weapon*    weapon;
     ObjectData inventory[MAX_INVENTORY];
     int        inventory_count;
+    int id;
+    struct Stats
 };
 
 // ==========================================

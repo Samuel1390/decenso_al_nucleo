@@ -1,32 +1,31 @@
-# formato: str nombre, int attack, int health, int hp_max, Armor* defense, int xp_level, int xp_threshold, int xp_points, Weapon* weapon, char rank
-1 cave_goblin 25 5 2 D
-2 wandering_skeleton 25 7 0 D
-3 cave_rata 15 2 0 D
-4 zombie_knight 35 10 5 D
-5 strong_goblin 45 10 4 C
-6 skeleton_knight 40 12 2 C
-7 acid_slime 35 15 4 C
-8 poisonous_ spider 30 15 2 C
-9 stone_gargoyle 40 10 10 C
-10 ancient_golem 50 10 15 C
-11 shadow_specter 45 15 5 C
-12 young_basilisk 50 20 10 B
-13 hungry_mimic 45 20 5 B
-14 poisonous_naga 50 25 10 B
-15 orc_berserker 50 25 20 B
-16 labyrinth_minotaur 55 28 20 B
-17 abyss_meduse 50 35 15 B
-18 void_stalker 55 30 25 A
-19 forge_cyclops 70 40 25 A
-20 mystic_yokai 65 45 20 A
-21 carnivorous_plant 50 50 20 A
-22 golden_berserker 75 55 25 A
-23
-24
-25 obsidian_golem 110 40 45 S
-26 ash_dragon 90 65 30 S
-NN beholder_observer 50 30 25 BOSS
-NN core_knight_warden 60 35 30 BOSS
-NN golden_dragon 75 45 30 BOSS
-NN core_hydra 125 80 40 BOSS
-NN lord_of_the_eternal_abyss 155 95 70 BOSS
+1 cave_goblin 5 25 25 1 30 10 D
+2 wandering_skeleton 7 25 25 1 30 10 D
+3 cave_rata 2 15 15 1 20 20 0 1 10 10 0 D
+4 zombie_knight 10 35 35 1 45 0 D
+5 strong_goblin 10 45 45 2 60 0 C
+6 skeleton_knight 12 40 40 2 65 0 C
+7 acid_slime 15 35 35 2 70 0 C
+8 poisonous_spider 15 30 30 2 75 0 C
+9 stone_gargoyle 10 40 40 3 85 0 C
+10 ancient_golem 10 50 50 3 90 0 C
+11 shadow_specter 15 45 45 3 100 0 C
+12 young_basilisk 20 50 50 4 130 0 B
+13 hungry_mimic 20 45 45 4 140 0 B
+14 poisonous_naga 25 50 50 4 150 0 B
+15 orc_berserker 25 50 50 5 175 0 B
+16 labyrinth_minotaur 28 55 55 5 200 0 B
+17 abyss_meduse 35 50 50 5 225 0 B
+18 void_stalker 30 55 55 6 260 0 A
+19 forge_cyclops 40 70 70 6 300 0 A
+20 mystic_yokai 45 65 65 6 340 0 A
+21 carnivorous_plant 50 50 50 7 380 0 A
+22 golden_berserker 55 75 75 7 420 0 A
+23 infernal_chimera 50 80 80 7 460 0 A
+24 abyssal_warlock 55 85 85 7 500 0 A
+25 obsidian_golem 40 110 110 8 600 0 S
+26 ash_dragon 65 90 90 8 700 0 S
+27 beholder_observer 30 50 50 9 800 0 R
+28 core_knight_warden 35 60 60 9 900 0 R
+29 golden_dragon 45 75 75 9 1000 0 R
+30 core_hydra 80 125 125 10 1250 0 R
+31 lord_of_the_eternal_abyss 95 155 155 10 1500 0 R

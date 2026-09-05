@@ -20,6 +20,8 @@ float get_random(float lo, float hi) {
 
 float min_f(float a, float b) { return (a < b) ? a : b; }
 float max_f(float a, float b) { return (a > b) ? a : b; }
+int min_int(int a, int b) { return (a < b) ? a : b; }
+int max_int(int a, int b) { return (a > b) ? a : b; }
 
 void enter_to_continue() {
     printf("[Enter] para continuar...\n");
@@ -181,6 +183,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
                 use_obj_fn(&selected_item, c);
             }
             set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
+            c->cont_items_used += 1;
             // Propagar la cantidad modificada de vuelta al inventario real
             set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
             if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
@@ -197,6 +200,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
                 get_obj_can_use_outside_battle(&selected_item)) {
                 use_obj_fn(&selected_item, c);
                 set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
+                c->cont_items_used += 1;
                 set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
                 if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
                 return "Usar";
@@ -293,7 +297,7 @@ void level_up(Character* c, int xp_gained) {
         c->hp_max       += c->hp_max      / 10;
         c->xp_threshold += c->xp_threshold / 10;
         c->xp_level     += 1;
-        printf("¡%s subió de nivel!\n", c->name);
+        printf("¡%s subió a nivel %d!\n", c->name, c->xp_level);
     }
     c->xp_points = xp_remaining;
 }
@@ -391,33 +395,33 @@ void show_enemy_stats(Enemy* p) {
     }
     printf("Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
 }
-int drop_xp(Enemy* enemy) {
+int drop_xp(Enemy* enemy, bool use_rank) {
     float xp_acum = 0;
     for (int i = enemy->base_char.xp_level; i > 0; i--) {
         xp_acum += enemy->base_char.xp_threshold * i * 0.1f;
     }
-    switch(enemy->rank) {
-        case 'D':
-            xp_acum *= 0.4;
-            break;
-        case 'C':
-            xp_acum *= 0.6;
-            break;
-        case 'B':
+    if (use_rank) {
+        switch(enemy->rank) {
+            case 'D':
             xp_acum *= 0.8;
             break;
-        case 'A':
-            xp_acum *= 1.4;
+        case 'C':
+            xp_acum *= 0.85;
             break;
-        case 'S':
+        case 'B':
+            xp_acum *= 0.9;
+            break;
+            case 'A':
+            xp_acum *= 0.95;
+            break;
+            case 'S':
             xp_acum *= 2;
             break;
+        }
     }
     return (int)xp_acum;
 }
-// ==========================================
 // COMBATE
-// ==========================================
 
 void combat(Player* p_player, Enemy* p_enemy) {
     Character* player_c = &p_player->base_char;
@@ -482,10 +486,15 @@ void combat(Player* p_player, Enemy* p_enemy) {
         if (enemy_c->health <= 0) {
             printf("%s ha muerto\n", enemy_c->name);
             ObjectData dropped = drop_random_item(enemy_c);
-            int xp_drop = drop_xp(p_enemy);
+            int xp_drop = drop_xp(p_enemy, true);
             char* dropped_name = get_obj_name(&dropped);
             add_item(player_c, &dropped, dropped_name);
             level_up(player_c, xp_drop);
+            enter_to_continue()
+            int max_hp = p_player->base_char.hp_max;
+            int health = p_player->base_char.health;
+            p_player->base_char.health = min_int(max_hp, health + (int)((float)max_hp * 0.4f));
+            printf("Has recuperado el 40%% de tu vida\n");
             enter_to_continue();
             free(dropped_name);
             return;

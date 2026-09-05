@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "types.h"
 #include "constants.h"
+#include "enemies.h"
 
 // ==========================================
 // CONTADOR GLOBAL DE IDs
@@ -151,7 +152,7 @@ int main(void) {
                    100, // health
                    100, // hp_max
                    &iron_armor_data, // defense
-                   1, // xp_level
+                   10, // xp_level
                    100, // xp_threshold
                    0, // xp_points
                    &iron_sword_data); // weapon
@@ -162,50 +163,10 @@ int main(void) {
     add_item(&player.base_char, &health_potion_I,   health_potion_I.data.item.name);
     add_item(&player.base_char, &health_potion_II,  health_potion_II.data.item.name);
 
-    // --- Crear enemigos ---
-    Enemy enemy1, enemy2, enemy3;
-
-    init_character(&enemy1.base_char, "Goblin",
-                     20, // attack
-                     80, // health
-                     80, // hp_max
-                     &iron_armor_data, // defense
-                     1, // xp_level
-                     100, // xp_threshold
-                     0, // xp_points
-                     &iron_sword_data); // weapon
-    enemy1.rank = 'D';
-    add_item(&enemy1.base_char, &health_potion_I, health_potion_I.data.item.name);
-
-    init_character(&enemy2.base_char, "Goblin",
-                     30, // attack
-                     90, // health
-                     90, // hp_max
-                     &iron_armor_data, // defense
-                     4, // xp_level
-                     140, // xp_threshold
-                     50, // xp_points
-                     &iron_sword_data); // weapon
-    enemy2.rank = 'C';
-    add_item(&enemy2.base_char, &health_potion_I, health_potion_I.data.item.name);
-
-    init_character(&enemy3.base_char, "Esqueleto",
-                     32, // attack
-                     90, // health
-                     90, // hp_max
-                     &iron_armor_data, // defense
-                     10, // xp_level
-                     240, // xp_threshold
-                     50, // xp_points
-                     &iron_sword_data); // weapon
-    enemy3.rank = 'B';
-    add_item(&enemy3.base_char, &health_potion_I, health_potion_I.data.item.name);
-
     // --- Combates ---
-    combat(&player, &enemy3);
-    show_player_stats(&player);
-    combat(&player, &enemy2);
-    show_player_stats(&player);
+    Enemy enemy4 = create_enemy("bestiario.txt", 26, next_id++, &player);
+    show_enemy_stats(&enemy4);
+    // combat(&player, &enemy4);
 
     return 0;
 }

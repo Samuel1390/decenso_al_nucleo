@@ -25,7 +25,8 @@ int max_int(int a, int b) { return (a > b) ? a : b; }
 
 void enter_to_continue() {
     printf("[Enter] para continuar...\n");
-    while (getchar() != '\n');
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
 }
 
 // Validación robusta de entrada de enteros
@@ -36,6 +37,8 @@ int get_int(const char* prompt) {
         printf("%s", prompt);
         if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
             if (sscanf(buffer, "%d", &value) == 1) return value;
+        } else {
+            exit(0); // Salir limpiamente si se cierra la entrada (EOF)
         }
         printf("Entrada inválida. Por favor, ingresa un número válido.\n");
     }
@@ -84,6 +87,7 @@ int add_item(Character* c, ObjectData* obj, const char* obj_name) {
         return 1;
     }
     printf("Inventario lleno\n");
+    // pendiente, implementar la funcion para soltar items a voluntad del jugador para agregar uno nuevo
     return 0;
 }
 
@@ -183,7 +187,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
                 use_obj_fn(&selected_item, c);
             }
             set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
-            c->cont_items_used += 1;
+            c->stats.cont_items_used += 1;
             // Propagar la cantidad modificada de vuelta al inventario real
             set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
             if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
@@ -200,7 +204,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
                 get_obj_can_use_outside_battle(&selected_item)) {
                 use_obj_fn(&selected_item, c);
                 set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
-                c->cont_items_used += 1;
+                c->stats.cont_items_used += 1;
                 set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
                 if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
                 return "Usar";
@@ -313,46 +317,71 @@ float escape_chance(float player_attack, float enemy_attack) {
 // DROP DE OBJETOS (opera sobre Character*)
 // ==========================================
 
-// Construye un ObjectData a partir del arma equipada del personaje
-ObjectData drop_random_item(Character* c) {
+// Intenta soltar un objeto del personaje. Retorna true si soltó un objeto, false en caso contrario.
+bool drop_random_item(Character* c, ObjectData* out_item) {
+    bool has_equipment = (c->weapon != NULL || c->defense != NULL);
+    bool has_inventory = (c->inventory_count > 0);
+
+    if (!has_equipment && !has_inventory) {
+        return false;
+    }
+
     float random_num = get_random(0, 1);
-    // EL personaje tiene un 50% de probabilidad de soltar ya sea su espada o su armadura
-    if (random_num > 0.5f) {
+    if (has_equipment && (random_num > 0.5f || !has_inventory)) {
         if (c->weapon != NULL && c->defense != NULL) {
-            ObjectData item;
             if (random_num > 0.75f) {
-                item.type = TYPE_WEAPON;
-                item.data.weapon = *c->weapon;
+                out_item->type = TYPE_WEAPON;
+                out_item->data.weapon = *c->weapon;
             } else {
-                item.type = TYPE_ARMOR;
-                item.data.armor = *c->defense;
+                out_item->type = TYPE_ARMOR;
+                out_item->data.armor = *c->defense;
             }
-            return item;
+            return true;
         } else if (c->weapon != NULL) {
-            ObjectData item;
-            item.type = TYPE_WEAPON;
-            item.data.weapon = *c->weapon;
-            return item;
+            out_item->type = TYPE_WEAPON;
+            out_item->data.weapon = *c->weapon;
+            return true;
         } else if (c->defense != NULL) {
-            ObjectData item;
-            item.type = TYPE_ARMOR;
-            item.data.armor = *c->defense;
-            return item;
+            out_item->type = TYPE_ARMOR;
+            out_item->data.armor = *c->defense;
+            return true;
         }
     }
-    // Fallback: ítem del inventario, el otro 50% restante es para soltar un item del inventario
-    // en caso de no tener simplemente no retorna nada
-    if (c->inventory_count > 0) {
+
+    if (has_inventory) {
         int idx = (int)get_random(0, (float)(c->inventory_count - 1));
-        return c->inventory[idx];
+        *out_item = c->inventory[idx];
+        return true;
     }
-    exit(1);
+
+    return false;
 }
 
 // ==========================================
 // ESTADÍSTICAS DEL JUGADOR Y ENEMIGO
 // ==========================================
 
+void fprintf_player_stats(Player* p, FILE* f) {
+    Character* c = &p->base_char;
+    fprintf(f, "--- Estadísticas de %s ---\n", c->name);
+    draw_progress_bar(c->health, c->hp_max, "HP");
+    draw_progress_bar((float)c->xp_points, (float)c->xp_threshold, "XP");
+    fprintf(f, "Nivel: %d\n",              c->xp_level);
+    fprintf(f, "XP para subir de nivel: %d\n", c->xp_threshold);
+    fprintf(f, "Ataque: %d\n",             c->attack);
+    if (c->defense != NULL) {
+        fprintf(f, "Defensa: %s\n", c->defense->name);
+    } else {
+        fprintf(f, "Defensa: sin armadura\n");
+    }
+    if (c->weapon != NULL) {
+        fprintf(f, "Arma: %s\n",
+               c->weapon->base_item.name);
+    } else {
+        fprintf(f, "Arma: desarmado\n");
+    }
+    fprintf(f, "Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
+}
 void show_player_stats(Player* p) {
     Character* c = &p->base_char;
     printf("--- Estadísticas de %s ---\n", c->name);
@@ -485,18 +514,20 @@ void combat(Player* p_player, Enemy* p_enemy) {
         }
         if (enemy_c->health <= 0) {
             printf("%s ha muerto\n", enemy_c->name);
-            ObjectData dropped = drop_random_item(enemy_c);
+            ObjectData dropped;
+            if (drop_random_item(enemy_c, &dropped)) {
+                char* dropped_name = get_obj_name(&dropped);
+                add_item(player_c, &dropped, dropped_name);
+                free(dropped_name);
+            }
             int xp_drop = drop_xp(p_enemy, true);
-            char* dropped_name = get_obj_name(&dropped);
-            add_item(player_c, &dropped, dropped_name);
             level_up(player_c, xp_drop);
-            enter_to_continue()
-            int max_hp = p_player->base_char.hp_max;
-            int health = p_player->base_char.health;
+            enter_to_continue();
+            int max_hp = player_c->hp_max;
+            int health = player_c->health;
             p_player->base_char.health = min_int(max_hp, health + (int)((float)max_hp * 0.4f));
             printf("Has recuperado el 40%% de tu vida\n");
             enter_to_continue();
-            free(dropped_name);
             return;
         }
         turn_counter++;

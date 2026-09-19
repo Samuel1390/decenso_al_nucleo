@@ -9,7 +9,40 @@
 #include "utils.h"
 #include "enemies.h"
 
-
+void tokenize_items(FILE* match, Player* player) {
+  for (int i=0; i < player->base_char.inventory_count; i++) {
+    ObjectData obj = player->base_char.inventory[i];
+    switch(obj.type) {
+      case TYPE_CONSUMABLE: {
+        char* target_type = obj.data.item.target_type == TARGET_PLAYER ? "TARGET_PLAYER" : "TARGET_ENEMY";
+        fprintf(match, "%s %s %d %d %d %s %d\n", "TYPE_CONSUMABLE",
+          obj.data.item.name,
+          obj.data.item.function,
+          obj.data.item.quantity, obj.data.item.can_use_outside_battle,
+          target_type,
+          obj.data.item.id);
+        break;
+      }
+      case TYPE_WEAPON: {
+        fprintf(match, "%s %s %d %d %d\n", "TYPE_WEAPON",
+          obj.data.weapon.base_item.name,
+          (int)(obj.data.weapon.damage * 100), obj.data.weapon.durability,
+           obj.data.weapon.base_item.id);
+        break;
+      }
+      case TYPE_ARMOR: {
+        fprintf(match, "%s %s %d %d %d\n", "TYPE_ARMOR",
+          obj.data.armor.base_item.name,
+          (int)(obj.data.armor.resistance * 100), obj.data.armor.durability,
+          obj.data.armor.base_item.id);
+          break;
+        }
+        default: {
+          fprintf(match, "NULL\n");
+      };
+    }
+  }
+}
 
 void save_hightscore(Player *player, char username[30], int curr_flor, int curr_hall) {
   //Nombre del Jugador, Pisos Alcanzados, Cantidad de Salas Exploradas, total de enemigos derrotados, objetos consumidos, Stats del jugador 
@@ -23,6 +56,7 @@ void save_hightscore(Player *player, char username[30], int curr_flor, int curr_
   fprintf(match, "------- Stats del jugador: -------- \n");
   fprintf_player_stats(player, match);
   fprintf(match, "----------------------------------\n");
+  tokenize_items(match, player);
   fclose(match);
 }
 void save_game_data(Player *player, char username[30], int curr_flor, int curr_hall) {
@@ -34,10 +68,39 @@ void save_game_data(Player *player, char username[30], int curr_flor, int curr_h
   fprintf(match, "Sala actual: %d\n", curr_hall);
   fprintf(match, "Total de enemigos derrotados: %d\n", player->base_char.stats.cont_kills);
   fprintf(match, "Total de objetos consumidos: %d\n", player->base_char.stats.cont_items_used);
-  fprintf(match, "------- Stats del jugador: -------- \n");
   fprintf_player_stats(player, match);
   fprintf(match, "----------------------------------\n");
+  fprintf(match, "Inventario: \n");
+  
+  // Tokenizar objetos
+  tokenize_items(match, player);
+
   fclose(match);
+}
+int get_last_int_element(char *str) {
+  char **arr = split(str, " ");
+  int i = 0;
+  while(arr[i + 1] != NULL) {
+    i++;
+  }
+  int last_idx = i;
+  char *last_str = arr[last_idx];
+  char *end_ptr;
+  int n = strtol(last_str, &end_ptr, 10);
+  if (last_str == end_ptr) {
+    printf("Error: No se pudo realizar ninguna conversión.\n");
+  } else {
+    return n;
+  }
+}
+char* get_last_str_element(char *str) {
+  char **arr = split(str, " ");
+  int i = 0;
+  while(arr[i + 1] != NULL) {
+    i++;
+  }
+  int last_idx = i;
+  return arr[last_idx];
 }
 void load_game_data(char* file_path) {
   FILE* match = fopen(file_path, "r");
@@ -45,15 +108,39 @@ void load_game_data(char* file_path) {
   char name[MAX_STRING];
   int curr_hall;
   int total_enemies_defeated;
-  int total_item_used;
+  int total_items_used;
   int xp_level;
   int attack;
-  Armor defense
+  char defense_name[MAX_STRING];
+  char attack_name[MAX_STRING];
+  char line[MAX_STRING];
   
-  fgets(username, sizeof(username), stdin);
-  fgets(name, sizeof(name), stdin);
-  fgets()
+  fgets(username, sizeof(username), match);
+  fgets(name, sizeof(name), match);
+  // pares clave/valor
+  fgets(line, sizeof(line), match); // Sala actual: i
+  curr_hall = get_last_int_element(line);
 
+  fgets(line, (int)sizeof(line), match); // Total de enemigos derrotados: j
+  total_enemies_defeated = get_last_int_element(line);
+
+  fgets(line, sizeof(line), match); // Total de objetos consumidos: k
+  total_items_used = get_last_int_element(line);
+
+  fgets(line, sizeof(line), match); // estadisticas de caballero
+
+  fgets(line, sizeof(line), match); // nivel: n
+  xp_level = get_last_int_element(line);
+
+  fgets(line, sizeof(line), match); // Ataque: r
+  attack = get_last_int_element(line);
+
+  fgets(line, sizeof(line), match); // Defensa: nombre_def
+  strcpy(defense_name,get_last_str_element(line));
+
+  fgets(line, sizeof(line), match); // Arma: nombre_wea
+  strcpy(attack_name,get_last_str_element(line));
+  // Luego viene la longitud del inventario
 }
 
 

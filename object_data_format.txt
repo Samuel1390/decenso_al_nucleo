@@ -1,0 +1,3 @@
+item: Type Name Fn Quantity Out_of_combat Target ID
+Armor: Type Name defense durability ID
+Weapon: Type Name damage durability ID

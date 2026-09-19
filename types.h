@@ -42,7 +42,7 @@ struct Item {
     ItemType  type;
     char      name[MAX_STRING];
     char      description[MAX_STRING + 200];
-    int       function;
+    int function;
     int       quantity;
     bool      can_use_outside_battle;
     TargetType target_type;

@@ -29,6 +29,24 @@ void enter_to_continue() {
     while ((ch = getchar()) != '\n' && ch != EOF);
 }
 
+char** split(char* str, char* delim) {
+    int n = 100;
+    char **arr = (char **)malloc(n * sizeof(char *));
+
+    if (arr == NULL) {
+        printf("Error al asignar memoria\n");
+        abort();
+    }
+    int i = 0;
+    char *token = strtok(str, delim);
+    while(token != NULL) {
+        arr[i] = token;
+        token = strtok(NULL, delim);
+        i++;
+    }
+    return arr;
+}
+
 // Validación robusta de entrada de enteros
 int get_int(const char* prompt) {
     char buffer[256];
@@ -383,11 +401,11 @@ void fprintf_player_stats(Player* p, FILE* f) {
     fprintf(f, "--- Estadísticas de %s ---\n", c->name);
     draw_progress_bar(c->health, c->hp_max, "HP");
     draw_progress_bar((float)c->xp_points, (float)c->xp_threshold, "XP");
-    fprintf(f, "Nivel: %d\n",              c->xp_level);
+    fprintf(f, "Nivel: %d\n",  c->xp_level);
     fprintf(f, "XP para subir de nivel: %d\n", c->xp_threshold);
-    fprintf(f, "Ataque: %d\n",             c->attack);
+    fprintf(f, "Ataque: %d\n", c->attack);
     if (c->defense != NULL) {
-        fprintf(f, "Defensa: %s\n", c->defense->name);
+        fprintf(f, "Defensa: %s\n", c->defense->base_item.name);
     } else {
         fprintf(f, "Defensa: sin armadura\n");
     }

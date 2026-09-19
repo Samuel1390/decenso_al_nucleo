@@ -1,4 +1,4 @@
-luke
+sam
 
 	Caballero
 	Último piso alcanzado: 1
@@ -10,39 +10,11 @@ luke
 Nivel: 10
 XP para subir de nivel: 100
 Ataque: 80
-Defensa: 50% reducción de daño físico
-Arma: Espada de hierro (ataque total: 80 pts)
+Defensa: Armadura de hierro
+Arma: Espada de hierro
 Inventario: 4/32
 ----------------------------------
-luke
-
-	Caballero
-	Último piso alcanzado: 1
-	Sala actual: 1
-	Total de enemigos derrotados: 0
-	Total de objetos consumidos: 0
-------- Stats del jugador: -------- 
---- Estadísticas de Caballero ---
-Nivel: 10
-XP para subir de nivel: 100
-Ataque: 80
-Defensa: 50% reducción de daño físico
-Arma: Espada de hierro (ataque total: 80 pts)
-Inventario: 4/32
-----------------------------------
-luke
-
-	Caballero
-	Último piso alcanzado: 1
-	Sala actual: 1
-	Total de enemigos derrotados: 0
-	Total de objetos consumidos: 0
-------- Stats del jugador: -------- 
---- Estadísticas de Caballero ---
-Nivel: 10
-XP para subir de nivel: 100
-Ataque: 80
-Defensa: 50% reducción de daño físico
-Arma: Espada de hierro (ataque total: 80 pts)
-Inventario: 4/32
-----------------------------------
+TYPE_WEAPON Espada de hierro 300 100 1
+TYPE_ARMOR Armadura de hierro 50 100 2
+TYPE_CONSUMABLE Poción de salud I 0 2 1 TARGET_PLAYER 3
+TYPE_CONSUMABLE Poción de salud II 0 1 1 TARGET_PLAYER 4

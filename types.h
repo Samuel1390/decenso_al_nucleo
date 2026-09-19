@@ -31,34 +31,29 @@ typedef enum {
 typedef struct Character Character;
 typedef struct Item      Item;
 typedef struct ObjectData ObjectData;  // Forward declaration necesaria para Character
-
 // ==========================================
 // 3. PUNTEROS A FUNCIÓN
 // ==========================================
-
-typedef void (*ItemAction)(Character* target);
-
+typedef void (*ItemAction)(const struct Item* item, struct Character* user, struct Character* target);
 // ==========================================
 // 4. ESTRUCTURAS PRINCIPALES
 // ==========================================
-
 struct Item {
     ItemType  type;
     char      name[MAX_STRING];
     char      description[MAX_STRING + 200];
+    int       function;
     int       quantity;
     bool      can_use_outside_battle;
     TargetType target_type;
     int       id;
     ItemAction use_function;
 };
-
 typedef struct {
     Item  base_item;
     float damage;      // Amplifica el ataque (0 = sin bono, infinito = máximo)
     int   durability;  // Usos restantes; -1 = infinito
 } Weapon;
-
 typedef struct {
     Item  base_item;
     float resistance;  // Reducción de daño físico (0.0 a 1.0)

@@ -142,14 +142,27 @@ void set_obj_quantity(ObjectData* obj, int quantity) {
     }
 }
 
-void use_obj_fn(ObjectData* obj, Character* target) {
+// En utils.h
+void use_obj_fn(ObjectData* obj, Character* user, Character* target) {
     ItemAction fn = NULL;
+    const Item* item_ptr = NULL;
     switch (obj->type) {
-        case TYPE_CONSUMABLE: fn = obj->data.item.use_function;              break;
-        case TYPE_WEAPON:     fn = obj->data.weapon.base_item.use_function;  break;
-        case TYPE_ARMOR:      fn = obj->data.armor.base_item.use_function;   break;
+        case TYPE_CONSUMABLE: 
+            fn = obj->data.item.use_function; 
+            item_ptr = &obj->data.item;
+            break;
+        case TYPE_WEAPON:     
+            fn = obj->data.weapon.base_item.use_function; 
+            item_ptr = &obj->data.weapon.base_item;
+            break;
+        case TYPE_ARMOR:      
+            fn = obj->data.armor.base_item.use_function; 
+            item_ptr = &obj->data.armor.base_item;
+            break;
     }
-    if (fn) fn(target);
+    if (fn && item_ptr) {
+        fn(item_ptr, user, target);
+    }
 }
 
 // Abre y gestiona el inventario de un personaje
@@ -181,20 +194,25 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
         int accion = menu(battle_ops, 2);
 
         if (accion == 1) {
-            if (get_obj_target(&selected_item) == TARGET_ENEMY) {
-                use_obj_fn(&selected_item, enemy);
-            } else if (get_obj_target(&selected_item) == TARGET_PLAYER) {
-                use_obj_fn(&selected_item, c);
-            }
-            set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
-            c->stats.cont_items_used += 1;
-            // Propagar la cantidad modificada de vuelta al inventario real
-            set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
-            if (get_obj_quantity(&selected_item) <= 0) remove_item(c, selected_index);
-            return "Usar";
-        } else if (accion == 2) {
-            return open_inventory(c, in_battle, enemy);
-        }
+    // Determinar quién es el objetivo según la propiedad del ítem
+    Character* target = (get_obj_target(&selected_item) == TARGET_ENEMY) ? enemy : c;
+
+    // Pasar los 3 argumentos requeridos: objeto, usuario (jugador) y objetivo
+    use_obj_fn(&selected_item, c, target);
+
+    set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
+    c->stats.cont_items_used += 1;
+
+    // Propagar la cantidad modificada de vuelta al inventario real
+    set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
+    if (get_obj_quantity(&selected_item) <= 0) {
+        remove_item(c, selected_index);
+    }
+    return "Usar";
+    } else if (accion == 2) {
+    return open_inventory(c, in_battle, enemy);
+    }
+        
     } else {
         const char* peace_ops[] = {"Usar", "Soltar", "Volver"};
         int accion = menu(peace_ops, 3);
@@ -202,7 +220,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
         if (accion == 1) { // Pendiente, se debe cambiar por un switch
             if (get_obj_target(&selected_item) == TARGET_PLAYER &&
                 get_obj_can_use_outside_battle(&selected_item)) {
-                use_obj_fn(&selected_item, c);
+                use_obj_fn(&selected_item, c, c);
                 set_obj_quantity(&selected_item, get_obj_quantity(&selected_item) - 1);
                 c->stats.cont_items_used += 1;
                 set_obj_quantity(&c->inventory[selected_index], get_obj_quantity(&selected_item));
@@ -325,7 +343,6 @@ bool drop_random_item(Character* c, ObjectData* out_item) {
     if (!has_equipment && !has_inventory) {
         return false;
     }
-
     float random_num = get_random(0, 1);
     if (has_equipment && (random_num > 0.5f || !has_inventory)) {
         if (c->weapon != NULL && c->defense != NULL) {
@@ -518,18 +535,20 @@ void combat(Player* p_player, Enemy* p_enemy) {
             if (drop_random_item(enemy_c, &dropped)) {
                 char* dropped_name = get_obj_name(&dropped);
                 add_item(player_c, &dropped, dropped_name);
-                free(dropped_name);
+                // Si get_obj_name devuelve un puntero interno y no un malloc, no uses free() aquí
             }
             int xp_drop = drop_xp(p_enemy, true);
             level_up(player_c, xp_drop);
             enter_to_continue();
+
             int max_hp = player_c->hp_max;
             int health = player_c->health;
             p_player->base_char.health = min_int(max_hp, health + (int)((float)max_hp * 0.4f));
-            printf("Has recuperado el 40%% de tu vida\n");
+            printf("Has recuperado el 40%%%% de tu vida\n");
             enter_to_continue();
             return;
         }
+
         turn_counter++;
     } while (player_c->health > 0 && enemy_c->health > 0 && !can_escape);
 }

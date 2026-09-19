@@ -24,23 +24,48 @@ static int next_id = 1;
 // ==========================================
 
 // --- Pociones de salud ---
+// Hay que crear un renglon de "Funcion" en el types.h para los items
 
-void use_health_potion_40(Character* target) {
-    float pct = 0.40f;
-    int recovered = (int)(target->hp_max * pct);
-    target->health = (int)min_f((float)(target->health + recovered), (float)target->hp_max);
-    printf("%s ha recuperado %d puntos de salud\n", target->name, recovered);
-    draw_progress_bar(target->health, target->hp_max, "HP");
-    enter_to_continue();
-}
+// Definición del puntero a función adaptado a la estructura Item
+typedef void (*ItemAction)(const struct Item* item, struct Character* user, struct Character* target);
 
-void use_health_potion_70(Character* target) {
-    float pct = 0.70f;
-    int recovered = (int)(target->hp_max * pct);
-    target->health = (int)min_f((float)(target->health + recovered), (float)target->hp_max);
-    printf("%s ha recuperado %d puntos de salud\n", target->name, recovered);
-    draw_progress_bar(target->health, target->hp_max, "HP");
-    enter_to_continue();
+void use_generic_item(const struct Item* item, struct Character* user, struct Character* target) {
+    float pct = (float)item->function / 100.0f;
+    // Incrementar contador de ítems usados en el usuario (si es un jugador con stats)
+    if (user != NULL) {
+        user->stats.cont_items_used++;
+    }
+    if (item->target_type == TARGET_PLAYER) {
+        // --- LÓGICA DE CURACIÓN ---
+        int amount = (int)(target->hp_max * pct);
+            if (target->health + amount > target->hp_max) {
+            amount = target->hp_max - target->health;
+        }
+        target->health += amount;
+        // Registrar puntos de salud restaurados en las estadísticas del objetivo
+        target->stats.health_points_restored += amount;
+        printf("%s ha recuperado %d puntos de salud\n", target->name, amount);
+        draw_progress_bar(target->health, target->hp_max, "HP");
+        enter_to_continue();
+
+    } else if (item->target_type == TARGET_ENEMY) {
+        // --- LÓGICA DE DAÑO ---
+        int damage = (int)(target->hp_max * pct);
+        if (damage > target->health) {
+            damage = target->health;
+        }
+        
+        target->health -= damage;
+
+        // Registrar daño infligido en las estadísticas del personaje que usó el ítem
+        if (user != NULL) {
+            user->stats.damage_dealt += damage;
+        }
+
+        printf("%s ha recibido %d puntos de daño por %s\n", target->name, damage, item->name);
+        draw_progress_bar(target->health, target->hp_max, "HP");
+        enter_to_continue();
+    }
 }
 
 // --- Equipar espada de hierro ---
@@ -111,23 +136,18 @@ ObjectData create_health_potion(int health_percentage, const char* suffix, int q
     potion.type = TYPE_CONSUMABLE;
     potion.data.item.type  = TYPE_CONSUMABLE;
     potion.data.item.id    = next_id++;
+    potion.data.item.function = health_percentage;
 
-    // Construir nombre y descripción
-    snprintf(potion.data.item.name,        MAX_STRING,
-             "Poción de salud %s",         suffix);
+    snprintf(potion.data.item.name, MAX_STRING, "Poción de salud %s", suffix);
     snprintf(potion.data.item.description, MAX_STRING + 200,
              "Restaura en un %d%% la salud del personaje", health_percentage);
 
-    potion.data.item.quantity              = (quantity > 0) ? quantity : 1;
+    potion.data.item.quantity = (quantity > 0) ? quantity : 1;
     potion.data.item.can_use_outside_battle = true;
-    potion.data.item.target_type           = TARGET_PLAYER;
+    potion.data.item.target_type = TARGET_PLAYER;
 
-    // Seleccionar función de uso según el porcentaje
-    if (health_percentage <= 40) {
-        potion.data.item.use_function = use_health_potion_40;
-    } else {
-        potion.data.item.use_function = use_health_potion_70;
-    }
+    // Asignar la función genérica a todas las pociones
+    potion.data.item.use_function = use_generic_item;
 
     return potion;
 }

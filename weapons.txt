@@ -1,0 +1,10 @@
+Weapon Espada_de_Hierro 15 20 D 7
+Weapon Espada_de_Acero 20 30 C 8
+Weapon Espada_de_Diamante 40 50 B 9
+Weapon Espada_de_Adamantium 60 75 S 10
+Weapon Daga_Afilada 20 10 D 11
+Weapon Daga_Toxica 25 15 C 12
+Weapon Arco_con_Flechas 20 25 D 13
+Weapon Cuarto_de_TNT 60 1 B 14
+Weapon Vara_del_Oraculo 27 20 C 15
+Weapon Vara_de_Mago_Antiguo 30 15 B 16

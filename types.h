@@ -4,9 +4,7 @@
 #include <stdbool.h>
 #include "constants.h"
 
-// ==========================================
 // 1. ENUMERACIONES
-// ==========================================
 
 typedef enum {
     TARGET_PLAYER,
@@ -24,20 +22,14 @@ typedef enum {
     TYPE_ARMOR
 } ItemType;
 
-// ==========================================
 // 2. DECLARACIONES ADELANTADAS (Forward Declarations)
-// ==========================================
 
 typedef struct Character Character;
 typedef struct Item      Item;
 typedef struct ObjectData ObjectData;  // Forward declaration necesaria para Character
-// ==========================================
 // 3. PUNTEROS A FUNCIÓN
-// ==========================================
 typedef void (*ItemAction)(const struct Item* item, struct Character* user, struct Character* target);
-// ==========================================
 // 4. ESTRUCTURAS PRINCIPALES
-// ==========================================
 struct Item {
     ItemType  type;
     char      name[MAX_STRING];
@@ -60,9 +52,9 @@ typedef struct {
     int   durability;  // Usos restantes; -1 = infinito
 } Armor;
 
-// ObjectData se define ANTES de Character para que Character pueda usarla
 struct ObjectData {
     ItemType type;
+    char rank;
     union {
         Item   item;
         Weapon weapon;
@@ -94,17 +86,14 @@ struct Character {
     Stats stats;
 };
 
-// ==========================================
 // 5. TIPOS COMPUESTOS
-// ==========================================
-
 typedef struct {
     Character base_char;
 } Player;
 
 typedef struct {
     Character base_char;
-    char rank;  // Rareza del enemigo: 'S' > 'A' > 'B' > 'C' > 'D'
+    char rank;  // rareza del enemigo: 'S' > 'A' > 'B' > 'C' > 'D'
 } Enemy;
 
 #endif // TYPES_H

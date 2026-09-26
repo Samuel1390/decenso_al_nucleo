@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "enemies.h"
 
+int global_id_counter = 1 * 512;
+
 void tokenize_items(FILE* match, Player* player) {
   for (int i=0; i < player->base_char.inventory_count; i++) {
     ObjectData obj = player->base_char.inventory[i];
@@ -143,8 +145,28 @@ void load_game_data(char* file_path) {
   // Luego viene la longitud del inventario
 }
 
+char int2rank(int enemy_range) {
+  switch(enemy_range) {
+    case 1:
+      return 'D';
+    case 2:
+      return 'C';
+    case 3:
+      return 'B';
+    case 4:
+      return 'A';
+    case 5:
+      return 'S';
+    case 6:
+      return 'R';
+    default:
+      printf("Error: Rango de enemigo invalido\n");
+      return 'D';
+  }
+}
 
-void dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, int curr_enemy_range, Player *player, Enemy *enemy)
+
+void dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, int curr_enemy_range, Player *player)
 {
   int total_halls = n_halls;
   if (curr_hall == 1) {
@@ -153,49 +175,58 @@ void dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, i
   if (curr_flor == n_flors) {
     total_halls += 1;
   }
-  int enemy_range = round((float)n_flors / 5.0);
+  char enemy_range = int2rank((int)round((float)n_flors / 5.0));
   
   char username[30];
   printf("¿Cual es tu nombre guerrero?\n");
   fgets(username, sizeof(username), stdin);
-  while (curr_hall < n_halls) {
-    const char* options[] = {"Salir y Guardar partida", "Inventario", "Combatir"};
-    int choise = menu(options, 3);
-    switch(choise) {
-      case 1:
-        save_game_data(player, username, curr_flor, curr_hall);
-        break;
-      case 2:
-        open_inventory(&player->base_char, false, NULL);// implementar contador de items usados
-        break;
-      case 3:
-        player->base_char.stats.rooms_visited += 1;
-        printf("Haz entrado a la sala %d-%d\n", curr_flor, curr_hall);
-        combat(player, enemy);
-        if (player->base_char.health == 0) {
-          printf("Fin del juego");
-          printf("%s\n", username);
-          printf("%s\n", player->base_char.name);
-          printf("Último piso alcanzado: %d\n", curr_flor);
-          printf("Sala actual: %d\n", curr_hall);
-          printf("Total de enemigos derrotados: %d\n", player->base_char.stats.cont_kills);
-          printf("Total de objetos consumidos: %d\n", player->base_char.stats.cont_items_used);
-          printf("------- Stats del jugador: -------- \n");
-          show_player_stats(player);
-          printf("----------------------------------\n");
-          
-          save_hightscore(player, username, curr_flor, curr_hall);
-          printf("Puntaje guardado en hightscore.dat");
+  while (curr_flor < n_flors) {
+    while (curr_hall < n_halls) {
+      const char* options[] = {"Salir y Guardar partida", "Inventario", "Combatir"};
+      Enemy enemy = create_random_enemy("bestiario.txt", enemy_range, global_id_counter++, player);
+      int choise = menu(options, 3);
+      switch(choise) {
+        case 1:
+          save_game_data(player, username, curr_flor, curr_hall);
+          return 0;
+        case 2:
+          open_inventory(&player->base_char, false, NULL);// implementar contador de items usados
           break;
-        }
-        curr_hall += 1;
-        player->base_char.stats.cont_kills+=1;
-        break;
+        case 3:
+          player->base_char.stats.rooms_visited += 1;
+          printf("Haz entrado a la sala %d-%d\n", curr_flor, curr_hall);
+          combat(player, &enemy);
+          if (player->base_char.health == 0) {
+            printf("Fin del juego");
+            printf("%s\n", username);
+            printf("%s\n", player->base_char.name);
+            printf("Último piso alcanzado: %d\n", curr_flor);
+            printf("Sala actual: %d\n", curr_hall);
+            printf("Total de enemigos derrotados: %d\n", player->base_char.stats.cont_kills);
+            printf("Total de objetos consumidos: %d\n", player->base_char.stats.cont_items_used);
+            printf("------- Stats del jugador: -------- \n");
+            show_player_stats(player);
+            printf("----------------------------------\n");
+            
+            save_hightscore(player, username, curr_flor, curr_hall);
+            printf("Puntaje guardado en hightscore.dat");
+            break;
+          }
+          curr_hall += 1;
+          player->base_char.stats.cont_kills+=1;
+          break;
+      }
+      curr_hall += 1;
     }
-    
+    curr_hall = 1;
+    if (curr_flor < n_flors) {
+      curr_flor += 1;
+      printf("\n");
+      printf("Subiste al piso: %d\n", curr_flor);
+      printf("Sala actual: %d\n", curr_hall);
+      enter_to_continue();
+    }
   }
-  curr_flor += 1;
-  curr_hall = 1;
 }
 
 #endif

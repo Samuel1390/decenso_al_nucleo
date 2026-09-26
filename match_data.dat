@@ -1,14 +1,21 @@
-luke
+Poto
+
 Caballero
-Último piso alcanzado: 1
+Último piso alcanzado: 3
 Sala actual: 1
-Total de enemigos derrotados: 0
-Total de objetos consumidos: 0
+Total de enemigos derrotados: 4
+Total de objetos consumidos: -1925870864
 --- Estadísticas de Caballero ---
-Nivel: 10
-XP para subir de nivel: 100
-Ataque: 80
-Defensa: nombre_de_la_armadura (50% reducción de daño físico)
-Arma: nombre_del_arma (ataque total: 80 pts)
-Inventario: 4/32
+Nivel: 35
+XP para subir de nivel: 1053
+Ataque: 826
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 5/32
 ----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 1
+TYPE_ARMOR Armadura de hierro 50 100 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 4
+TYPE_CONSUMABLE Pocion_HP_Lvl2 0 1 1 TARGET_PLAYER 516

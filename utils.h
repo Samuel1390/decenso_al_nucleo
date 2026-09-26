@@ -308,19 +308,15 @@ int calculate_attack(Character* c) {
     return c->attack;
 }
 
-void take_damage(Character* c, int damage, DamageType type) {
+void take_damage(Character* c, int damage) {
     int damage_received = 0;
-    if (type == DMG_PHYSICAL) {
-        if (c->defense != NULL) {
-            // resistance reduce el daño: damage * (1 - resistance)
-            damage_received = (int)(damage * (1.0f - c->defense->resistance));
-        } else {
-            damage_received = damage;  // Sin armadura, daño completo
-        }
-    } else if (type == DMG_MAGICAL) {
-        damage_received = damage;
+    if (c->defense != NULL) {
+        // resistance reduce el daño: damage * (1 - resistance)
+        damage_received = (int)(damage * (1.0f - c->defense->resistance / 100));
+    } else {
+        damage_received = damage;  // Sin armadura, daño completo
     }
-    if (damage_received < 0) damage_received = 0;
+    if (damage_received < 0) damage_received = 1;
 
     c->health -= damage_received;
     if (c->health <= 0) {
@@ -329,7 +325,7 @@ void take_damage(Character* c, int damage, DamageType type) {
     }
 }
 
-void level_up(Character* c, int xp_gained) {
+void level_up(Character* c, int xp_gained, int print_notice) {
     int xp_remaining = xp_gained + c->xp_points;
     while (xp_remaining >= c->xp_threshold) {
         xp_remaining   -= c->xp_threshold;
@@ -337,7 +333,9 @@ void level_up(Character* c, int xp_gained) {
         c->hp_max       += c->hp_max      / 10;
         c->xp_threshold += c->xp_threshold / 10;
         c->xp_level     += 1;
-        printf("¡%s subió a nivel %d!\n", c->name, c->xp_level);
+        if (print_notice) {
+            printf("¡%s subió a nivel %d!\n", c->name, c->xp_level);
+        }
     }
     c->xp_points = xp_remaining;
 }
@@ -354,9 +352,13 @@ float escape_chance(float player_attack, float enemy_attack) {
 // ==========================================
 
 // Intenta soltar un objeto del personaje. Retorna true si soltó un objeto, false en caso contrario.
-bool drop_random_item(Character* c, ObjectData* out_item) {
+bool drop_random_item(Character* c, ObjectData* out_item, char rank) {
     bool has_equipment = (c->weapon != NULL || c->defense != NULL);
     bool has_inventory = (c->inventory_count > 0);
+    // para rangos comunes la probabilidad de dropear items es de un 60%
+    if (rank == 'D' || rank == 'C' && get_random(0,1) < 0.4) {
+        return false; 
+    }
 
     if (!has_equipment && !has_inventory) {
         return false;
@@ -467,19 +469,19 @@ int drop_xp(Enemy* enemy, bool use_rank) {
     if (use_rank) {
         switch(enemy->rank) {
             case 'D':
-            xp_acum *= 0.8;
+            xp_acum *= 0.25;
             break;
         case 'C':
-            xp_acum *= 0.85;
+            xp_acum *= 0.30;
             break;
         case 'B':
-            xp_acum *= 0.9;
+            xp_acum *= 0.40;
             break;
             case 'A':
-            xp_acum *= 0.95;
+            xp_acum *= 0.50;
             break;
             case 'S':
-            xp_acum *= 2;
+            xp_acum *= 0.65;
             break;
         }
     }
@@ -506,7 +508,7 @@ void combat(Player* p_player, Enemy* p_enemy) {
             switch (selected_op) {
                 case 1:
                     printf("%s ataca a %s\n", player_c->name, enemy_c->name);
-                    take_damage(enemy_c, calculate_attack(player_c), DMG_PHYSICAL);
+                    take_damage(enemy_c, calculate_attack(player_c));
                     draw_progress_bar(enemy_c->health, enemy_c->hp_max, "HP");
                     enter_to_continue();
                     break;
@@ -537,7 +539,7 @@ void combat(Player* p_player, Enemy* p_enemy) {
         } else {
             // Turno del enemigo
             printf("%s ataca a %s\n", enemy_c->name, player_c->name);
-            take_damage(player_c, calculate_attack(enemy_c), DMG_PHYSICAL);
+            take_damage(player_c, calculate_attack(enemy_c));
             draw_progress_bar(player_c->health, player_c->hp_max, "HP");
             enter_to_continue();
         }
@@ -550,13 +552,15 @@ void combat(Player* p_player, Enemy* p_enemy) {
         if (enemy_c->health <= 0) {
             printf("%s ha muerto\n", enemy_c->name);
             ObjectData dropped;
-            if (drop_random_item(enemy_c, &dropped)) {
+            if (drop_random_item(enemy_c, &dropped, p_enemy->rank)) {
                 char* dropped_name = get_obj_name(&dropped);
                 add_item(player_c, &dropped, dropped_name);
                 // Si get_obj_name devuelve un puntero interno y no un malloc, no uses free() aquí
             }
             int xp_drop = drop_xp(p_enemy, true);
-            level_up(player_c, xp_drop);
+            printf("Haz ganado %d puntos de experiencia\n", xp_drop);
+            enter_to_continue();
+            level_up(player_c, xp_drop, 1);
             enter_to_continue();
 
             int max_hp = player_c->hp_max;

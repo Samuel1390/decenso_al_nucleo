@@ -1,0 +1,8 @@
+Armor Arm_de_Goblin 5 10 D 17
+Armor Arm_de_Hierro 10 20 C 18
+Armor Arm_CaballeroAstral 15 25 C 19
+Armor Arm_Diamante 25 50 A 20
+Armor Arm_Escamas_de_Dragon 40 60 A 21
+Armor Arm_Golem 60 15 A 22
+Armor Arm_Hydra 45 60 S 23
+Armor Arm_Adamantium 75 100 S 24

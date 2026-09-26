@@ -319,7 +319,8 @@ void give_enemy_item(Enemy* enemy, ObjectData* item) {
 // ==========================================
 
 int main(void) {
-    srand((unsigned int)time(NULL));
+    // srand((unsigned int)time(NULL));
+    srand(14);
     Weapon iron_sword_data;
     Armor  iron_armor_data;
 
@@ -351,13 +352,13 @@ int main(void) {
     // run_drop_tests(&player);
 
     // --- Preparar enemigo para la mazmorra con equipo y drops ---
-    Enemy enemy4 = create_enemy("bestiario.txt", 26, next_id++, &player);
-    Weapon dragon_weapon;
-    Armor dragon_armor;
-    give_enemy_weapon(&enemy4, &dragon_weapon, "Garra de dragon ceniza", 5.0f);
-    give_enemy_armor(&enemy4, &dragon_armor, "Escamas ignifugas", 0.5f);
-    ObjectData dragon_potion = create_health_potion(70, "de Dragon", 1);
-    give_enemy_item(&enemy4, &dragon_potion);
+    // Enemy enemy4 = create_enemy("bestiario.txt", 26, next_id++, &player);
+    // Weapon dragon_weapon;
+    // Armor dragon_armor;
+    // give_enemy_weapon(&enemy4, &dragon_weapon, "Garra de dragon ceniza", 5.0f);
+    // give_enemy_armor(&enemy4, &dragon_armor, "Escamas ignifugas", 0.5f);
+    // ObjectData dragon_potion = create_health_potion(70, "de Dragon", 1);
+    // give_enemy_item(&enemy4, &dragon_potion);
 
     int seed = 1;
     int n_flors = 10;
@@ -365,7 +366,7 @@ int main(void) {
     int curr_flor = 1;
     int curr_hall = 1;
     int curr_enemy_range = 'D';
-    dungeon(seed, n_flors, n_halls, curr_flor, curr_hall, curr_enemy_range, &player, &enemy4);
+    dungeon(seed, n_flors, n_halls, curr_flor, curr_hall, curr_enemy_range, &player);
     // show_enemy_stats(&enemy4);
     // combat(&player, &enemy4);
 

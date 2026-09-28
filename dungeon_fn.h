@@ -161,12 +161,12 @@ char int2rank(int enemy_range) {
       return 'R';
     default:
       printf("Error: Rango de enemigo invalido\n");
-      return 'D';
+      abort();
   }
 }
 
 
-void dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, int curr_enemy_range, Player *player)
+int dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, int curr_enemy_range, Player *player)
 {
   int total_halls = n_halls;
   if (curr_hall == 1) {
@@ -191,7 +191,7 @@ void dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, i
           return 0;
         case 2:
           open_inventory(&player->base_char, false, NULL);// implementar contador de items usados
-          break;
+          continue;
         case 3:
           player->base_char.stats.rooms_visited += 1;
           printf("Haz entrado a la sala %d-%d\n", curr_flor, curr_hall);

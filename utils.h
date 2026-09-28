@@ -9,9 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// ==========================================
 // UTILIDADES GENERALES
-// ==========================================
 
 float get_random(float lo, float hi) {
     float scale = (float)rand() / (float)RAND_MAX;
@@ -62,6 +60,24 @@ int get_int(const char* prompt) {
     }
 }
 
+// funciones para para manejar el dropeo de xp y aumento del umbral
+float delta(float x) {
+    // esta funcion la usamos para calcular los nuevos umbrales de xp
+    return (float)pow(1.25, x - 4.0f) + 0.5f;
+}
+
+// la funcion delta_inverse es la inversa de delta, la usamos para calcular el nivel adecuado de xp que deberia dropear el enemigo
+float delta_inverse(float x) {
+    float argument = x - 0.5f;
+    
+    // Validación para evitar errores matemáticos (logaritmo de números <= 0)
+    if (argument <= 0.0f) {
+        return 0.0f; 
+    }
+    
+    return (float)(log(argument) / log(1.25)) + 4.0f;
+}
+
 // Menú dinámico y robusto
 int menu(const char* options[], int num_options) {
     printf("\n\nEscribe el número de la opción para seleccionarla:\n");
@@ -83,10 +99,7 @@ void draw_progress_bar(float current_value, float max_value, char label[]) {
     for (int i = filled; i < 50; i++) printf("-");
     printf("] %s %d/%d\n", label, (int)current_value, (int)max_value);
 }
-
-// ==========================================
 // INVENTARIO (operan sobre Character*)
-// ==========================================
 
 // Elimina un objeto del inventario desplazando el arreglo
 void remove_item(Character* c, int index) {
@@ -331,7 +344,7 @@ void level_up(Character* c, int xp_gained, int print_notice) {
         xp_remaining   -= c->xp_threshold;
         c->attack       += c->attack      / 10;
         c->hp_max       += c->hp_max      / 10;
-        c->xp_threshold += c->xp_threshold / 10;
+        c->xp_threshold += (int)(delta((float)c->xp_level) * BASE_XP_THRESHOLD); // ya que xp_level es > 1 el numero siempre resultante siempre es mayor a BASE_XP_THRESHOLD
         c->xp_level     += 1;
         if (print_notice) {
             printf("¡%s subió a nivel %d!\n", c->name, c->xp_level);
@@ -462,30 +475,36 @@ void show_enemy_stats(Enemy* p) {
     printf("Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
 }
 int drop_xp(Enemy* enemy, bool use_rank) {
-    float xp_acum = 0;
-    for (int i = enemy->base_char.xp_level; i > 0; i--) {
-        xp_acum += enemy->base_char.xp_threshold * i * 0.1f;
-    }
-    if (use_rank) {
-        switch(enemy->rank) {
-            case 'D':
-            xp_acum *= 0.25;
-            break;
-        case 'C':
-            xp_acum *= 0.30;
-            break;
-        case 'B':
-            xp_acum *= 0.40;
-            break;
-            case 'A':
-            xp_acum *= 0.50;
-            break;
-            case 'S':
-            xp_acum *= 0.65;
-            break;
-        }
-    }
-    return (int)xp_acum;
+    char rank = enemy->rank;
+    int xp_level = enemy->base_char.xp_level;
+    int xp_droped = 0;
+    int threshold = (int)(delta_inverse((float)xp_level) * BASE_XP_THRESHOLD);
+    xp_droped += threshold;
+    // if (use_rank) {
+    //     switch(rank) {
+    //         case 'D':
+    //             xp_droped = (int)(xp_droped * 0.5);
+    //             break;
+    //         case 'C':
+    //             xp_droped = (int)(xp_droped * 0.75);
+    //             break;
+    //         case 'B':
+    //             xp_droped = (int)(xp_droped * 1.0);
+    //             break;
+    //         case 'A':
+    //             xp_droped = (int)(xp_droped * 1.25);
+    //             break;
+    //         case 'S':
+    //             xp_droped = (int)(xp_droped * 1.5);
+    //             break;
+    //         case 'R':
+    //             xp_droped = (int)(xp_droped * 2.0);
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    // }
+    return xp_droped;
 }
 // COMBATE
 
@@ -557,7 +576,7 @@ void combat(Player* p_player, Enemy* p_enemy) {
                 add_item(player_c, &dropped, dropped_name);
                 // Si get_obj_name devuelve un puntero interno y no un malloc, no uses free() aquí
             }
-            int xp_drop = drop_xp(p_enemy, true);
+            int xp_drop = drop_xp(p_enemy, p_player);
             printf("Haz ganado %d puntos de experiencia\n", xp_drop);
             enter_to_continue();
             level_up(player_c, xp_drop, 1);

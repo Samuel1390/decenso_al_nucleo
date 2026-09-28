@@ -4,5 +4,5 @@
 #define MAX_INVENTORY 32
 #define MAX_STRING 100
 #define MAX_STACK_AMOUNT 16
-
+#define BASE_XP_THRESHOLD 100
 #endif CONSTANTS_H

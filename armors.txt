@@ -1,3 +1,4 @@
+// ItemType, name, resistance, durability, rank, id
 Armor Arm_de_Goblin 5 10 D 17
 Armor Arm_de_Hierro 10 20 C 18
 Armor Arm_CaballeroAstral 15 25 C 19

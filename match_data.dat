@@ -1,27 +1,20 @@
-poto
+sam
 
-Caballero
-Último piso alcanzado: 9
-Sala actual: 3
-Total de enemigos derrotados: 16
-Total de objetos consumidos: -703038734
---- Estadísticas de Caballero ---
-Nivel: 14
-XP para subir de nivel: 146
-Ataque: 115
-Defensa: Armadura de hierro
-Arma: Espada de hierro
-Inventario: 11/32
-----------------------------------
-Inventario: 
-TYPE_WEAPON Espada de hierro 300 100 1
-TYPE_ARMOR Armadura de hierro 50 100 2
-TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 3
-TYPE_WEAPON Daga_Toxica 2500 15 515
-TYPE_ARMOR Arm_CaballeroAstral 1500 25 516
-TYPE_CONSUMABLE Pocion_HP_Lvl2 0 1 1 TARGET_PLAYER 518
-TYPE_CONSUMABLE Pocion_HP_Lvl2 0 1 1 TARGET_PLAYER 522
-TYPE_ARMOR Arm_de_Hierro 1000 20 523
-TYPE_CONSUMABLE Pocion_Daño_Lvl 0 1 1 TARGET_ENEMY 524
-TYPE_ARMOR Arm_de_Hierro 1000 20 525
-TYPE_CONSUMABLE Pocion_HP_Lvl2 0 1 1 TARGET_PLAYER 527
+	Caballero
+	last_floor_reached: 1
+	current_hall: 4
+	total_enemies_defeated: 6291457
+	total_items_used: 0
+-------- player_stats: -------- 
+level: 5
+xp_threshold: 595
+attack: 28
+defense: TYPE_ARMOR Armadura_de_hierro 50 100 0 2
+weapon: TYPE_WEAPON Espada_de_hierro 300 100 0 1
+inventory_count: 4
+max_inventory: 32
+---------- end_player_stats ----------
+TYPE_WEAPON Espada de hierro 300 100 0 1
+TYPE_ARMOR Armadura de hierro 50 100 0 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 0 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 0 4

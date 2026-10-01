@@ -37,13 +37,52 @@ char** split(char* str, char* delim) {
     }
     int i = 0;
     char *token = strtok(str, delim);
-    while(token != NULL) {
+    while(token != NULL && i < n - 1) {
         arr[i] = token;
         token = strtok(NULL, delim);
         i++;
     }
+    arr[i] = NULL;
     return arr;
 }
+
+char* join(char** arr, char* delim) {
+    if (arr == NULL || arr[0] == NULL) {
+        char* empty = (char*)malloc(1 * sizeof(char));
+        if (empty != NULL) empty[0] = '\0';
+        return empty;
+    }
+
+    int total_length = 0;
+    int delim_length = strlen(delim);
+    int i = 0;
+
+    while (arr[i] != NULL) {
+        total_length += strlen(arr[i]);
+        i++;
+    }
+    int num_words = i;
+    total_length += (num_words - 1) * delim_length + 1;
+    
+    char* result = (char*)malloc(total_length * sizeof(char));
+    if (result == NULL) {
+        printf("Error al asignar memoria en join\n");
+        return NULL;
+    }
+
+    // 4. Construir la cadena uniendo los elementos
+    result[0] = '\0'; // Inicializar la cadena vacía para usar strcat con seguridad
+    for (i = 0; i < num_words; i++) {
+        strcat(result, arr[i]);
+        // Añadir el delimitador solo si no es el último elemento
+        if (i < num_words - 1) {
+            strcat(result, delim);
+        }
+    }
+
+    return result;
+}
+
 
 // Validación robusta de entrada de enteros
 int get_int(const char* prompt) {
@@ -127,13 +166,13 @@ int get_idx_from_id(Character* c, int id) {
     for (int i = 0; i < c->inventory_count; i++) {
         switch (c->inventory[i].type) {
             case TYPE_CONSUMABLE:
-                if (c->inventory[i].data.item.id == id) return i;
+                if (c->inventory[i].data.item.global_id == id) return i;
                 break;
             case TYPE_WEAPON:
-                if (c->inventory[i].data.weapon.base_item.id == id) return i;
+                if (c->inventory[i].data.weapon.base_item.global_id == id) return i;
                 break;
             case TYPE_ARMOR:
-                if (c->inventory[i].data.armor.base_item.id == id) return i;
+                if (c->inventory[i].data.armor.base_item.global_id == id) return i;
                 break;
         }
     }
@@ -173,6 +212,37 @@ void set_obj_quantity(ObjectData* obj, int quantity) {
     }
 }
 
+// --- Lógica de uso de ítems genéricos (consumibles) ---
+void use_generic_item(const struct Item* item, struct Character* user, struct Character* target) {
+    float pct = (float)item->function / 100.0f;
+    if (user != NULL) {
+        user->stats.cont_items_used++;
+    }
+    if (item->target_type == TARGET_PLAYER) {
+        int amount = (int)(target->hp_max * pct);
+        if (target->health + amount > target->hp_max) {
+            amount = target->hp_max - target->health;
+        }
+        target->health += amount;
+        target->stats.health_points_restored += amount;
+        printf("%s ha recuperado %d puntos de salud\n", target->name, amount);
+        draw_progress_bar(target->health, target->hp_max, "HP");
+        enter_to_continue();
+    } else if (item->target_type == TARGET_ENEMY) {
+        int damage = (int)(target->hp_max * pct);
+        if (damage > target->health) {
+            damage = target->health;
+        }
+        target->health -= damage;
+        if (user != NULL) {
+            user->stats.damage_dealt += damage;
+        }
+        printf("%s ha recibido %d puntos de daño por %s\n", target->name, damage, item->name);
+        draw_progress_bar(target->health, target->hp_max, "HP");
+        enter_to_continue();
+    }
+}
+
 // En utils.h
 void use_obj_fn(ObjectData* obj, Character* user, Character* target) {
     ItemAction fn = NULL;
@@ -206,7 +276,9 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
 
     const char* inv_ops[MAX_INVENTORY + 1];
     for (int i = 0; i < c->inventory_count; i++) {
-        inv_ops[i] = get_obj_name(&c->inventory[i]);
+        char str_quantity[4];
+        snprintf(str_quantity, sizeof(str_quantity), " x%d", get_obj_quantity(&c->inventory[i]));
+        inv_ops[i] = strcat(get_obj_name(&c->inventory[i]), str_quantity);
     }
     inv_ops[c->inventory_count] = "Salir";
 
@@ -286,6 +358,7 @@ char* open_inventory(Character* c, bool in_battle, Character* enemy) {
             return open_inventory(c, in_battle, enemy);
         }
     }
+    return "Salir";
 }
 
 // ==========================================
@@ -369,7 +442,7 @@ bool drop_random_item(Character* c, ObjectData* out_item, char rank) {
     bool has_equipment = (c->weapon != NULL || c->defense != NULL);
     bool has_inventory = (c->inventory_count > 0);
     // para rangos comunes la probabilidad de dropear items es de un 60%
-    if (rank == 'D' || rank == 'C' && get_random(0,1) < 0.4) {
+    if (rank == 'D' || (rank == 'C' && get_random(0,1) < 0.4f)) {
         return false; 
     }
 
@@ -432,6 +505,38 @@ void fprintf_player_stats(Player* p, FILE* f) {
     }
     fprintf(f, "Inventario: %d/%d\n", c->inventory_count, MAX_INVENTORY);
 }
+void fprintf_player_stats_formatted(Player* p, FILE* f) {
+    Character* c = &p->base_char;
+    draw_progress_bar(c->health, c->hp_max, "HP");
+    draw_progress_bar((float)c->xp_points, (float)c->xp_threshold, "XP");
+    fprintf(f, "level: %d\n",  c->xp_level);
+    fprintf(f, "xp_threshold: %d\n", c->xp_threshold);
+    fprintf(f, "attack: %d\n", c->attack);
+    if (c->defense != NULL) {
+        char* name_formatted = join(split(c->defense->base_item.name, " "), "_"); // para de Armadura de Hierro a Armadura_de_Hierro
+        fprintf(f, "defense: %s %s %d %d %d %d\n", "TYPE_ARMOR",
+          name_formatted,
+          (int)(c->defense->resistance * 100), c->defense->durability,
+          c->defense->base_item.file_id,
+          c->defense->base_item.global_id);
+        free(name_formatted);
+    } else {
+        fprintf(f, "defense: no_defense\n");
+    }
+    if (c->weapon != NULL) {
+        char* name_formatted = join(split(c->weapon->base_item.name, " "), "_"); // para de Espada de Hierro a Espada_de_Hierro
+        fprintf(f, "weapon: %s %s %d %d %d %d\n", "TYPE_WEAPON",
+          name_formatted,
+          (int)(c->weapon->damage * 100), c->weapon->durability,
+          c->weapon->base_item.file_id,
+          c->weapon->base_item.global_id);
+        free(name_formatted);
+    } else {
+        fprintf(f, "weapon: no_weapon\n");
+    }
+    fprintf(f, "inventory_count: %d\n", c->inventory_count);
+    fprintf(f, "max_inventory: %d\n", MAX_INVENTORY);
+}
 void show_player_stats(Player* p) {
     Character* c = &p->base_char;
     printf("--- Estadísticas de %s ---\n", c->name);
@@ -441,7 +546,7 @@ void show_player_stats(Player* p) {
     printf("XP para subir de nivel: %d\n", c->xp_threshold);
     printf("Ataque: %d\n",             c->attack);
     if (c->defense != NULL) {
-        printf("Defensa: %.0f%% reducción de daño físico\n", c->defense->resistance * 100.0f);
+        printf("Defensa: %s (%.0f%% reducción de daño físico)\n", c->defense->base_item.name, c->defense->resistance * 100.0f);
     } else {
         printf("Defensa: sin armadura\n");
     }
@@ -508,9 +613,10 @@ int drop_xp(Enemy* enemy, bool use_rank) {
 }
 // COMBATE
 
-void combat(Player* p_player, Enemy* p_enemy) {
+int combat(Player* p_player, Enemy* p_enemy) { // -> returona el time to kill del jugador, si muere devuelve -1
     Character* player_c = &p_player->base_char;
     Character* enemy_c  = &p_enemy->base_char;
+    int ttk = 0
 
     char first_user = (enemy_c->xp_level > player_c->xp_level) ? 'e' : 'p';
 
@@ -529,6 +635,7 @@ void combat(Player* p_player, Enemy* p_enemy) {
                     printf("%s ataca a %s\n", player_c->name, enemy_c->name);
                     take_damage(enemy_c, calculate_attack(player_c));
                     draw_progress_bar(enemy_c->health, enemy_c->hp_max, "HP");
+                    ttk += 1;
                     enter_to_continue();
                     break;
                 case 2:
@@ -566,7 +673,7 @@ void combat(Player* p_player, Enemy* p_enemy) {
         if (player_c->health <= 0) {
             printf("HAS MUERTO, fin del juego\n");
             enter_to_continue();
-            return;
+            return -1;
         }
         if (enemy_c->health <= 0) {
             printf("%s ha muerto\n", enemy_c->name);
@@ -587,7 +694,7 @@ void combat(Player* p_player, Enemy* p_enemy) {
             p_player->base_char.health = min_int(max_hp, health + (int)((float)max_hp * 0.4f));
             printf("Has recuperado el 40%%%% de tu vida\n");
             enter_to_continue();
-            return;
+            return ttk;
         }
 
         turn_counter++;

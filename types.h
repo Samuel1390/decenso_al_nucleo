@@ -38,7 +38,8 @@ struct Item {
     int       quantity;
     bool      can_use_outside_battle;
     TargetType target_type;
-    int       id;
+    int       file_id;
+    int       global_id;
     ItemAction use_function;
 };
 typedef struct {
@@ -82,7 +83,8 @@ struct Character {
     Weapon*    weapon;
     ObjectData inventory[MAX_INVENTORY];
     int        inventory_count;
-    int id;
+    int file_id;
+    int global_id;
     Stats stats;
 };
 

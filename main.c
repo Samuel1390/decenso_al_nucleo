@@ -10,9 +10,6 @@
 #include "constants.h"
 #include "enemies.h"
 
-// ==========================================
-// CONTADOR GLOBAL DE IDs
-// ==========================================
 
 static int next_id = 1;
 
@@ -23,76 +20,27 @@ static int next_id = 1;
 //  soportan closures reales en MinGW/Windows)
 // ==========================================
 
-// --- Pociones de salud ---
-// Hay que crear un renglon de "Funcion" en el types.h para los items
-
-// Definición del puntero a función adaptado a la estructura Item
-typedef void (*ItemAction)(const struct Item* item, struct Character* user, struct Character* target);
-
-void use_generic_item(const struct Item* item, struct Character* user, struct Character* target) {
-    float pct = (float)item->function / 100.0f;
-    // Incrementar contador de ítems usados en el usuario (si es un jugador con stats)
-    if (user != NULL) {
-        user->stats.cont_items_used++;
-    }
-    if (item->target_type == TARGET_PLAYER) {
-        // --- LÓGICA DE CURACIÓN ---
-        int amount = (int)(target->hp_max * pct);
-            if (target->health + amount > target->hp_max) {
-            amount = target->hp_max - target->health;
-        }
-        target->health += amount;
-        // Registrar puntos de salud restaurados en las estadísticas del objetivo
-        target->stats.health_points_restored += amount;
-        printf("%s ha recuperado %d puntos de salud\n", target->name, amount);
-        draw_progress_bar(target->health, target->hp_max, "HP");
-        enter_to_continue();
-
-    } else if (item->target_type == TARGET_ENEMY) {
-        // --- LÓGICA DE DAÑO ---
-        int damage = (int)(target->hp_max * pct);
-        if (damage > target->health) {
-            damage = target->health;
-        }
-        
-        target->health -= damage;
-
-        // Registrar daño infligido en las estadísticas del personaje que usó el ítem
-        if (user != NULL) {
-            user->stats.damage_dealt += damage;
-        }
-
-        printf("%s ha recibido %d puntos de daño por %s\n", target->name, damage, item->name);
-        draw_progress_bar(target->health, target->hp_max, "HP");
-        enter_to_continue();
-    }
-}
-
 // --- Equipar espada de hierro ---
 
-void equip_iron_sword(Character* c) {
-    // NOTA: el arma real debe ser pasada por contexto externo.
-    // Esta función marca visualmente el equipamiento; la asignación
-    // de c->weapon se hace directamente desde main/create_iron_sword.
-    printf("%s ha equipado la Espada de hierro.\n", c->name);
+void equip_iron_sword(const struct Item* item, struct Character* user, struct Character* target) {
+    (void)item; (void)target;
+    printf("%s ha equipado la Espada de hierro.\n", user->name);
     enter_to_continue();
 }
 
 // --- Equipar armadura de hierro ---
 
-void equip_iron_armor(Character* c) {
-    printf("%s ha equipado la Armadura de hierro.\n", c->name);
+void equip_iron_armor(const struct Item* item, struct Character* user, struct Character* target) {
+    (void)item; (void)target;
+    printf("%s ha equipado la Armadura de hierro.\n", user->name);
     enter_to_continue();
 }
 
-// ==========================================
-// FACTORÍAS DE ÍTEMS
-// ==========================================
 
 ObjectData create_iron_sword(Weapon* out_weapon) {
     Weapon w;
     w.base_item.type               = TYPE_WEAPON;
-    w.base_item.id                 = next_id++;
+    w.base_item.global_id                 = next_id++;
     strncpy(w.base_item.name,        "Espada de hierro", MAX_STRING - 1);
     strncpy(w.base_item.description, "Arma cuerpo a cuerpo muy popular y eficaz", MAX_STRING + 199);
     w.base_item.quantity           = 1;
@@ -113,7 +61,7 @@ ObjectData create_iron_sword(Weapon* out_weapon) {
 ObjectData create_iron_armor(Armor* out_armor) {
     Armor a;
     a.base_item.type               = TYPE_ARMOR;
-    a.base_item.id                 = next_id++;
+    a.base_item.global_id                 = next_id++;
     strncpy(a.base_item.name,        "Armadura de hierro", MAX_STRING - 1);
     strncpy(a.base_item.description, "Armadura que protege el cuerpo de ataques físicos", MAX_STRING + 199);
     a.base_item.quantity           = 1;
@@ -135,7 +83,7 @@ ObjectData create_health_potion(int health_percentage, const char* suffix, int q
     ObjectData potion;
     potion.type = TYPE_CONSUMABLE;
     potion.data.item.type  = TYPE_CONSUMABLE;
-    potion.data.item.id    = next_id++;
+    potion.data.item.global_id    = next_id++;
     potion.data.item.function = health_percentage;
 
     snprintf(potion.data.item.name, MAX_STRING, "Poción de salud %s", suffix);
@@ -151,14 +99,9 @@ ObjectData create_health_potion(int health_percentage, const char* suffix, int q
 
     return potion;
 }
-
-// ==========================================
-// HELPERS PARA EQUIPAR ENEMIGOS
-// ==========================================
-
 void give_enemy_weapon(Enemy* enemy, Weapon* weapon, const char* name, float damage) {
     weapon->base_item.type               = TYPE_WEAPON;
-    weapon->base_item.id                 = next_id++;
+    weapon->base_item.global_id                 = next_id++;
     strncpy(weapon->base_item.name, name, MAX_STRING - 1);
     weapon->base_item.name[MAX_STRING - 1] = '\0';
     strncpy(weapon->base_item.description, "Arma empuñada por el enemigo", MAX_STRING + 199);
@@ -173,7 +116,7 @@ void give_enemy_weapon(Enemy* enemy, Weapon* weapon, const char* name, float dam
 
 void give_enemy_armor(Enemy* enemy, Armor* armor, const char* name, float resistance) {
     armor->base_item.type               = TYPE_ARMOR;
-    armor->base_item.id                 = next_id++;
+    armor->base_item.global_id                 = next_id++;
     strncpy(armor->base_item.name, name, MAX_STRING - 1);
     armor->base_item.name[MAX_STRING - 1] = '\0';
     strncpy(armor->base_item.description, "Armadura que protege al enemigo", MAX_STRING + 199);
@@ -192,183 +135,70 @@ void give_enemy_item(Enemy* enemy, ObjectData* item) {
     free(item_name);
 }
 
-// ==========================================
-// TESTS DE DROPEO DE OBJETOS
-// ==========================================
-
-// void run_drop_tests(Player* player) {
-//     printf("\n========================================================\n");
-//     printf("        INICIANDO TESTS DE DROPEO DE OBJETOS            \n");
-//     printf("========================================================\n\n");
-
-//     // --- TEST 1: Enemigo con arma equipada (cave_goblin - ID 1) ---
-//     printf("--- [TEST 1] Enemigo con arma equipada (cave_goblin) ---\n");
-//     Enemy goblin = create_enemy("bestiario.txt", 1, next_id++, player);
-//     Weapon goblin_dagger;
-//     give_enemy_weapon(&goblin, &goblin_dagger, "Daga de goblin", 2.0f);
-
-//     int count_before = player->base_char.inventory_count;
-//     ObjectData dropped;
-//     int has_dropped = drop_random_item(&goblin.base_char, &dropped);
-
-//     assert(has_dropped == true);
-//     assert(dropped.type == TYPE_WEAPON);
-//     assert(strcmp(dropped.data.weapon.base_item.name, "Daga de goblin") == 0);
-
-//     // El jugador toma el objeto dropeado
-//     char* dropped_name = get_obj_name(&dropped);
-//     added = add_item(&player->base_char, &dropped, dropped_name);
-//     free(dropped_name);
-
-//     assert(added == 1);
-//     assert(player->base_char.inventory_count == count_before + 1);
-//     printf("Resultado: OK -> El jugador tomo con exito '%s'. (Inventario: %d/%d)\n\n",
-//            player->base_char.inventory[player->base_char.inventory_count - 1].data.weapon.base_item.name,
-//            player->base_char.inventory_count, MAX_INVENTORY);
-
-//     // --- TEST 2: Enemigo con armadura equipada (stone_gargoyle - ID 9) ---
-//     printf("--- [TEST 2] Enemigo con armadura equipada (stone_gargoyle) ---\n");
-//     Enemy gargoyle = create_enemy("bestiario.txt", 9, next_id++, player);
-//     Armor gargoyle_skin;
-//     give_enemy_armor(&gargoyle, &gargoyle_skin, "Piel de gargola petrificada", 0.45f);
-
-//     count_before = player->base_char.inventory_count;
-//     has_dropped = drop_random_item(&gargoyle.base_char, &dropped);
-
-//     assert(has_dropped == true);
-//     assert(dropped.type == TYPE_ARMOR);
-//     assert(strcmp(dropped.data.armor.base_item.name, "Piel de gargola petrificada") == 0);
-
-//     // El jugador toma el objeto dropeado
-//     dropped_name = get_obj_name(&dropped);
-//     added = add_item(&player->base_char, &dropped, dropped_name);
-//     free(dropped_name);
-
-//     assert(added == 1);
-//     assert(player->base_char.inventory_count == count_before + 1);
-//     printf("Resultado: OK -> El jugador tomo con exito '%s'. (Inventario: %d/%d)\n\n",
-//            player->base_char.inventory[player->base_char.inventory_count - 1].data.armor.base_item.name,
-//            player->base_char.inventory_count, MAX_INVENTORY);
-
-//     // --- TEST 3: Enemigo con consumible en inventario (wandering_skeleton - ID 2) ---
-//     printf("--- [TEST 3] Enemigo con objeto en inventario (wandering_skeleton) ---\n");
-//     Enemy skeleton = create_enemy("bestiario.txt", 2, next_id++, player);
-//     ObjectData bone_potion = create_health_potion(40, "de Hueso", 1);
-//     give_enemy_item(&skeleton, &bone_potion);
-
-//     count_before = player->base_char.inventory_count;
-//     has_dropped = drop_random_item(&skeleton.base_char, &dropped);
-
-//     assert(has_dropped == true);
-//     assert(dropped.type == TYPE_CONSUMABLE);
-//     assert(strcmp(dropped.data.item.name, "Poción de salud de Hueso") == 0);
-
-//     // El jugador toma el objeto dropeado
-//     dropped_name = get_obj_name(&dropped);
-//     added = add_item(&player->base_char, &dropped, dropped_name);
-//     free(dropped_name);
-
-//     assert(added == 1);
-//     assert(player->base_char.inventory_count == count_before + 1);
-//     printf("Resultado: OK -> El jugador tomo con exito '%s'. (Inventario: %d/%d)\n\n",
-//            player->base_char.inventory[player->base_char.inventory_count - 1].data.item.name,
-//            player->base_char.inventory_count, MAX_INVENTORY);
-
-//     // --- TEST 4: Enemigo sin objetos ni equipo (acid_slime - ID 7) ---
-//     printf("--- [TEST 4] Enemigo sin ningun objeto ni equipo (acid_slime) ---\n");
-//     Enemy slime = create_enemy("bestiario.txt", 7, next_id++, player);
-
-//     count_before = player->base_char.inventory_count;
-//     has_dropped = drop_random_item(&slime.base_char, &dropped);
-
-//     assert(has_dropped == false);
-//     assert(player->base_char.inventory_count == count_before);
-//     printf("Resultado: OK -> No hubo dropeo (retorno false de forma segura sin abortar ni alterar el inventario).\n\n");
-
-//     // --- TEST 5: Enemigo mixto con arma, armadura e inventario (zombie_knight - ID 4) ---
-//     printf("--- [TEST 5] Múltiples tiradas en enemigo con inventario y equipo (zombie_knight) ---\n");
-//     Enemy zombie = create_enemy("bestiario.txt", 4, next_id++, player);
-//     Weapon zombie_sword;
-//     Armor zombie_armor;
-//     give_enemy_weapon(&zombie, &zombie_sword, "Mandoble oxidado", 3.0f);
-//     give_enemy_armor(&zombie, &zombie_armor, "Cota herrumbrosa", 0.35f);
-//     ObjectData zombie_pot = create_health_potion(70, "Antigua", 2);
-//     give_enemy_item(&zombie, &zombie_pot);
-
-//     count_before = player->base_char.inventory_count;
-//     for (int i = 0; i < 3; i++) {
-//         has_dropped = drop_random_item(&zombie.base_char, &dropped);
-//         assert(has_dropped == true);
-//         dropped_name = get_obj_name(&dropped);
-//         printf("    Simulacion %d: dropeo '%s' (Tipo: %d)\n", i + 1, dropped_name, dropped.type);
-//         // El jugador toma cada objeto dropeado
-//         add_item(&player->base_char, &dropped, dropped_name);
-//         free(dropped_name);
-//     }
-//     assert(player->base_char.inventory_count == count_before + 3);
-//     printf("Resultado: OK -> El jugador tomo los 3 objetos generados. (Inventario: %d/%d)\n\n",
-//            player->base_char.inventory_count, MAX_INVENTORY);
-
-//     printf("========================================================\n");
-//     printf("       TODOS LOS TESTS DE DROPEO PASARON CON ÉXITO      \n");
-//     printf("========================================================\n\n");
-// }
 
 // ==========================================
 // MAIN
 // ==========================================
 
 int main(void) {
-    // srand((unsigned int)time(NULL));
-    srand(14);
-    Weapon iron_sword_data;
-    Armor  iron_armor_data;
+    srand(15);
 
-    ObjectData iron_sword_obj = create_iron_sword(&iron_sword_data);
-    ObjectData iron_armor_obj = create_iron_armor(&iron_armor_data);
+    const char* main_menu_options[] = {
+        "Continuar partida guardada (match_data.dat)",
+        "Iniciar nueva partida",
+        "Salir"
+    };
 
-    ObjectData health_potion_I  = create_health_potion(40, "I",  2);
-    ObjectData health_potion_II = create_health_potion(70, "II", 1);
+    printf("¿Que deseas hacer guerrero?\n");
+    int op = menu(main_menu_options, 3);
 
-    // --- Crear jugador ---
     Player player;
-    init_character(&player.base_char, "Caballero",
-                    80, // attack
-                   100, // health
-                   100, // hp_max
-                   &iron_armor_data, // defense
-                   10, // xp_level
-                   100, // xp_threshold
-                   0, // xp_points
-                   &iron_sword_data); // weapon
-
-    // Agregar ítems iniciales al inventario del jugador
-    add_item(&player.base_char, &iron_sword_obj,    iron_sword_obj.data.weapon.base_item.name);
-    add_item(&player.base_char, &iron_armor_obj,    iron_armor_obj.data.armor.base_item.name);
-    add_item(&player.base_char, &health_potion_I,   health_potion_I.data.item.name);
-    add_item(&player.base_char, &health_potion_II,  health_potion_II.data.item.name);
-
-    // --- Ejecutar tests automáticos de dropeo de objetos ---
-    // run_drop_tests(&player);
-
-    // --- Preparar enemigo para la mazmorra con equipo y drops ---
-    // Enemy enemy4 = create_enemy("bestiario.txt", 26, next_id++, &player);
-    // Weapon dragon_weapon;
-    // Armor dragon_armor;
-    // give_enemy_weapon(&enemy4, &dragon_weapon, "Garra de dragon ceniza", 5.0f);
-    // give_enemy_armor(&enemy4, &dragon_armor, "Escamas ignifugas", 0.5f);
-    // ObjectData dragon_potion = create_health_potion(70, "de Dragon", 1);
-    // give_enemy_item(&enemy4, &dragon_potion);
-
+    char username[MAX_STRING] = "";
+    int curr_flor = 1;
+    int curr_hall = 1;
     int seed = 1;
     int n_flors = 10;
     int n_halls = 5;
-    int curr_flor = 1;
-    int curr_hall = 1;
     int curr_enemy_range = 'D';
-    dungeon(seed, n_flors, n_halls, curr_flor, curr_hall, curr_enemy_range, &player);
-    // show_enemy_stats(&enemy4);
-    // combat(&player, &enemy4);
+
+    if (op == 1) {
+        if (!load_game_data("match_data.dat", &player, username, &curr_flor, &curr_hall)) {
+            printf("Error al cargar la partida guardada.\n");
+            return 1;
+        }
+        printf("\n¡Bienvenido de nuevo, %s!\n", username);
+        printf("Reanudando partida desde el Piso %d, Sala %d...\n", curr_flor, curr_hall);
+        enter_to_continue();
+        dungeon(seed, n_flors, n_halls, curr_flor, curr_hall, curr_enemy_range, &player, username);
+    } else if (op == 2) {
+        Weapon iron_sword_data;
+        Armor  iron_armor_data;
+
+        ObjectData iron_sword_obj = create_iron_sword(&iron_sword_data);
+        ObjectData iron_armor_obj = create_iron_armor(&iron_armor_data);
+
+        ObjectData health_potion_I  = create_health_potion(40, "I",  2);
+        ObjectData health_potion_II = create_health_potion(70, "II", 1);
+
+        init_character(&player.base_char, "Caballero",
+                        20, // attack
+                       35, // health
+                       35, // hp_max
+                       &iron_armor_data, // defense
+                       1, // xp_level
+                       100, // xp_threshold
+                       0, // xp_points
+                       &iron_sword_data); // weapon
+
+        add_item(&player.base_char, &iron_sword_obj,    iron_sword_obj.data.weapon.base_item.name);
+        add_item(&player.base_char, &iron_armor_obj,    iron_armor_obj.data.armor.base_item.name);
+        add_item(&player.base_char, &health_potion_I,   health_potion_I.data.item.name);
+        add_item(&player.base_char, &health_potion_II,  health_potion_II.data.item.name);
+
+        dungeon(seed, n_flors, n_halls, curr_flor, curr_hall, curr_enemy_range, &player, "");
+    } else {
+        printf("Partida finalizada.\n");
+    }
 
     return 0;
 }

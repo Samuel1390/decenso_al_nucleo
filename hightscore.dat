@@ -18,3 +18,143 @@ TYPE_WEAPON Espada de hierro 300 100 1
 TYPE_ARMOR Armadura de hierro 50 100 2
 TYPE_CONSUMABLE Poción de salud I 0 2 1 TARGET_PLAYER 3
 TYPE_CONSUMABLE Poción de salud II 0 1 1 TARGET_PLAYER 4
+san
+
+Caballero
+Último piso alcanzado: 1
+Sala actual: 3
+Total de enemigos derrotados: 1
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 1
+TYPE_ARMOR Armadura de hierro 50 100 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 4
+san
+
+Caballero
+Último piso alcanzado: 1
+Sala actual: 4
+Total de enemigos derrotados: 1
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 1
+TYPE_ARMOR Armadura de hierro 50 100 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 4
+san
+
+Caballero
+Último piso alcanzado: 2
+Sala actual: 1
+Total de enemigos derrotados: 1
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 1
+TYPE_ARMOR Armadura de hierro 50 100 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 4
+san
+
+Caballero
+Último piso alcanzado: 2
+Sala actual: 2
+Total de enemigos derrotados: 1
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 1
+TYPE_ARMOR Armadura de hierro 50 100 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 4
+sam
+
+Caballero
+Último piso alcanzado: 1
+Sala actual: 3
+Total de enemigos derrotados: 1
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 0 1
+TYPE_ARMOR Armadura de hierro 50 100 0 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 0 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 0 4
+sam
+
+Caballero
+Último piso alcanzado: 1
+Sala actual: 4
+Total de enemigos derrotados: 1
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 0 1
+TYPE_ARMOR Armadura de hierro 50 100 0 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 0 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 0 4
+sam
+
+Caballero
+Último piso alcanzado: 1
+Sala actual: 3
+Total de enemigos derrotados: 6291457
+Total de objetos consumidos: 0
+--- Estadísticas de Caballero ---
+Nivel: 5
+XP para subir de nivel: 595
+Ataque: 28
+Defensa: Armadura de hierro
+Arma: Espada de hierro
+Inventario: 4/32
+----------------------------------
+Inventario: 
+TYPE_WEAPON Espada de hierro 300 100 0 1
+TYPE_ARMOR Armadura de hierro 50 100 0 2
+TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 0 3
+TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 0 4

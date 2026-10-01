@@ -46,11 +46,11 @@ int get_obj_quantity(ObjectData* obj) {
     return 0;
 }
 
-int get_obj_id(ObjectData* obj) {
+int get_obj_global_id(ObjectData* obj) {
     switch (obj->type) {
-        case TYPE_CONSUMABLE: return obj->data.item.id;
-        case TYPE_WEAPON:     return obj->data.weapon.base_item.id;
-        case TYPE_ARMOR:      return obj->data.armor.base_item.id;
+        case TYPE_CONSUMABLE: return obj->data.item.global_id;
+        case TYPE_WEAPON:     return obj->data.weapon.base_item.global_id;
+        case TYPE_ARMOR:      return obj->data.armor.base_item.global_id;
     }
     return -1;
 }

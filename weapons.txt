@@ -1,3 +1,4 @@
+// ItemType, name, damage, durability, rank, id
 Weapon Espada_de_Hierro 15 20 D 7
 Weapon Espada_de_Acero 20 30 C 8
 Weapon Espada_de_Diamante 40 50 B 9

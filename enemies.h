@@ -44,7 +44,7 @@ Enemy create_enemy(char path[], int id, int global_id, Player *player) {
         // Ojo pendiente hay que modificar el bestiario.txt ya que no se tomara en cuenta el nivel de experiencia sino que sera uno por eso el xp_level / xp_level
         init_character(&enemy.base_char, name, attack, health, hp_max, armor, xp_level / xp_level, xp_threshold, xp_points, weapon);
         enemy.rank = rank;
-        enemy.base_char.id = global_id;
+        enemy.base_char.global_id = global_id;
         normalize_enemy(player, &enemy);
         found = true;
       }
@@ -113,7 +113,8 @@ ObjectData create_random_item(char rank, int global_id) {
             ObjectData item;
             item.type = TYPE_CONSUMABLE;
             item.data.item.type = TYPE_CONSUMABLE;
-            item.data.item.id = global_id;
+            item.data.item.file_id = id;
+            item.data.item.global_id = global_id;
             strncpy(item.data.item.name, name, MAX_STRING - 1);
             item.data.item.name[MAX_STRING - 1] = '\0';
             strncpy(item.data.item.description, "description", MAX_STRING + 199);
@@ -154,7 +155,8 @@ ObjectData create_random_item(char rank, int global_id) {
             ObjectData item;
             item.type = TYPE_WEAPON;
             item.data.weapon.base_item.type = TYPE_WEAPON;
-            item.data.weapon.base_item.id = global_id;
+            item.data.weapon.base_item.file_id = id;
+            item.data.weapon.base_item.global_id = global_id;
             strncpy(item.data.weapon.base_item.name, name, MAX_STRING - 1);
             item.data.weapon.base_item.name[MAX_STRING - 1] = '\0';
             char description[MAX_STRING + 199];
@@ -198,7 +200,8 @@ ObjectData create_random_item(char rank, int global_id) {
             ObjectData item;
             item.type = TYPE_ARMOR;
             item.data.armor.base_item.type = TYPE_ARMOR;
-            item.data.armor.base_item.id = global_id;
+            item.data.armor.base_item.file_id = id;
+            item.data.armor.base_item.global_id = global_id;
             strncpy(item.data.armor.base_item.name, name, MAX_STRING - 1);
             item.data.armor.base_item.name[MAX_STRING - 1] = '\0';
             char description[MAX_STRING + 199];
@@ -270,7 +273,8 @@ Enemy create_random_enemy(char path[], char rank, int global_id, Player *player)
         // Ojo pendiente hay que modificar el bestiario.txt ya que no se tomara en cuenta el nivel de experiencia sino que sera uno por eso el xp_level / xp_level
         init_character(&enemy.base_char, name, attack, health, hp_max, armor, xp_level / xp_level, 100, xp_points, weapon);
         enemy.rank = rank;
-        enemy.base_char.id = global_id;
+        enemy.base_char.file_id = file_id;
+        enemy.base_char.global_id = global_id;
         ObjectData item1 = create_random_item(rank, global_id + 1);
         ObjectData item2 = create_random_item(rank, global_id + 2);
         add_item(&enemy.base_char, &item1, item1.data.item.name);

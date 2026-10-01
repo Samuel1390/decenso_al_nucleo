@@ -590,14 +590,24 @@ int dungeon(int seed, int n_flors, int n_halls, int curr_flor, int curr_hall, in
   }
   while (curr_flor < n_flors) {
     while (curr_hall < n_halls) {
+      int time_to_kill = 0;
+      int enemy_lv_media = 0;
+      int enemy_lv_std = curr_flor / 2;
+      if (curr_hall > 1) { // aqui time_to_kill viene del piso anterior asi que es mayor a cero
+        if (time_to_kill == 1) { // si el ttk es muy bajo le damos ventaja al enemigo sumandole un a la enemy_lv_media de su nivel que inicialmente es la misma que la del jugador
+          enemy_lv_media = 1;
+        } else if (time_to_kill > 3) { // si el ttk es muy alto le damos ventaja al jugador restandole uno a la enemy_lv_media de su nivel
+          enemy_lv_media = -1;
+        }
+      }
       const char* options[] = {"Combatir", "Inventario", "Ver estadísticas", "Salir y Guardar partida"};
-      Enemy enemy = create_random_enemy("bestiario.txt", enemy_range, global_id_counter++, player);
+      Enemy enemy = create_random_enemy("bestiario.txt", enemy_range, global_id_counter++, player, enemy_lv_media, enemy_lv_std);
       int choise = menu(options, 4);
       switch(choise) {
         case 1:
           player->base_char.stats.rooms_visited += 1;
           printf("Haz entrado a la sala %d-%d\n", curr_flor, curr_hall);
-          int time_to_kill = combat(player, &enemy);
+          time_to_kill = combat(player, &enemy);
           printf("Tiempo para matar al enemigo: %d", time_to_kill);
           
           if (player->base_char.health == 0) {

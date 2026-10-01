@@ -6,9 +6,9 @@ sam
 	total_enemies_defeated: 6291457
 	total_items_used: 0
 -------- player_stats: -------- 
-level: 5
-xp_threshold: 595
-attack: 28
+level: 3
+xp_threshold: 315
+attack: 24
 defense: TYPE_ARMOR Armadura_de_hierro 50 100 0 2
 weapon: TYPE_WEAPON Espada_de_hierro 300 100 0 1
 inventory_count: 4

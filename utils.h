@@ -585,30 +585,30 @@ int drop_xp(Enemy* enemy, bool use_rank) {
     int xp_droped = 0;
     int threshold = (int)(delta_inverse((float)xp_level) * BASE_XP_THRESHOLD);
     xp_droped += threshold;
-    // if (use_rank) {
-    //     switch(rank) {
-    //         case 'D':
-    //             xp_droped = (int)(xp_droped * 0.5);
-    //             break;
-    //         case 'C':
-    //             xp_droped = (int)(xp_droped * 0.75);
-    //             break;
-    //         case 'B':
-    //             xp_droped = (int)(xp_droped * 1.0);
-    //             break;
-    //         case 'A':
-    //             xp_droped = (int)(xp_droped * 1.25);
-    //             break;
-    //         case 'S':
-    //             xp_droped = (int)(xp_droped * 1.5);
-    //             break;
-    //         case 'R':
-    //             xp_droped = (int)(xp_droped * 2.0);
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // }
+    if (use_rank) {
+        switch(rank) {
+            case 'D':
+                xp_droped = (int)(xp_droped * 0.9);
+                break;
+            case 'C':
+                xp_droped = (int)(xp_droped * 0.95);
+                break;
+            case 'B':
+                xp_droped = (int)(xp_droped * 1.0);
+                break;
+            case 'A':
+                xp_droped = (int)(xp_droped * 1.05);
+                break;
+            case 'S':
+                xp_droped = (int)(xp_droped * 1.2);
+                break;
+            case 'R':
+                xp_droped = (int)(xp_droped * 1.8);
+                break;
+            default:
+                break;
+        }
+    }
     return xp_droped;
 }
 // COMBATE
@@ -616,7 +616,7 @@ int drop_xp(Enemy* enemy, bool use_rank) {
 int combat(Player* p_player, Enemy* p_enemy) { // -> returona el time to kill del jugador, si muere devuelve -1
     Character* player_c = &p_player->base_char;
     Character* enemy_c  = &p_enemy->base_char;
-    int ttk = 0
+    int ttk = 0;
 
     char first_user = (enemy_c->xp_level > player_c->xp_level) ? 'e' : 'p';
 

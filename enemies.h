@@ -4,11 +4,12 @@
 #include "constants.h"
 #include "utils.h"
 
-void normalize_enemy(Player *player, Enemy *enemy) {
+void normalize_enemy(Player *player, Enemy *enemy, int mu, int sigma) {
+  // Esta funcion equilibra al enemigo en un nivel al rededor de mu + player_lv con una desviacion estandar de sigma
+  // Comunmente usamos mu para referirnos a la media y sigma para referirnos a la desviacion estandar
   int player_level = player->base_char.xp_level;
 
-  int enemy_level = enemy->base_char.xp_level;
-  int new_level = (int)get_random(max_int(player_level - 3, 1), player_level + 3); // pendiente cambiar el limite superior de 0 a 1-2
+  int new_level = (int)get_random(max_int(player_level + mu - sigma, 1), player_level + mu + sigma);
   enemy->base_char.xp_level = new_level;
   
   int original_xp = enemy->base_char.xp_points;
@@ -45,7 +46,7 @@ Enemy create_enemy(char path[], int id, int global_id, Player *player) {
         init_character(&enemy.base_char, name, attack, health, hp_max, armor, xp_level / xp_level, xp_threshold, xp_points, weapon);
         enemy.rank = rank;
         enemy.base_char.global_id = global_id;
-        normalize_enemy(player, &enemy);
+        normalize_enemy(player, &enemy, 0, 0);
         found = true;
       }
     }
@@ -222,7 +223,10 @@ ObjectData create_random_item(char rank, int global_id) {
   }
 }
 
-Enemy create_random_enemy(char path[], char rank, int global_id, Player *player) {
+Enemy create_random_enemy(char path[], char rank, int global_id, Player *player, int enemy_lv_media, int enemy_lv_std) {
+  // Esta funcion creara un enemigo con una media y desviacion estandar en su nivel
+  // Comunmente usamos mu para referirnos a la media y sigma para referirnos a la desviacion estandar
+  // pero en este caso usaremos enemy_lv_media y enemy_lv_std para no confundirnos con el nombre de las variables
   Enemy enemy;
   bool found = false;
   char line[MAX_STRING];
@@ -279,7 +283,7 @@ Enemy create_random_enemy(char path[], char rank, int global_id, Player *player)
         ObjectData item2 = create_random_item(rank, global_id + 2);
         add_item(&enemy.base_char, &item1, item1.data.item.name);
         add_item(&enemy.base_char, &item2, item2.data.item.name);
-        normalize_enemy(player, &enemy);
+        normalize_enemy(player, &enemy, enemy_lv_media, enemy_lv_std);
         found = true;
       }
     }

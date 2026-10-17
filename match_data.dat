@@ -3,18 +3,19 @@ sam
 	Caballero
 	last_floor_reached: 1
 	current_hall: 4
-	total_enemies_defeated: 6291457
+	total_enemies_defeated: 2
 	total_items_used: 0
 -------- player_stats: -------- 
 level: 3
 xp_threshold: 315
 attack: 24
-defense: TYPE_ARMOR Armadura_de_hierro 50 100 0 2
-weapon: TYPE_WEAPON Espada_de_hierro 300 100 0 1
-inventory_count: 4
+defense: TYPE_ARMOR Armadura_de_hierro 50 100 32758 2
+weapon: TYPE_WEAPON Espada_de_hierro 300 100 32758 1
+inventory_count: 5
 max_inventory: 32
 ---------- end_player_stats ----------
-TYPE_WEAPON Espada de hierro 300 100 0 1
-TYPE_ARMOR Armadura de hierro 50 100 0 2
+TYPE_WEAPON Espada de hierro 300 100 32758 1
+TYPE_ARMOR Armadura de hierro 50 100 32758 2
 TYPE_CONSUMABLE Poción de salud I 40 2 1 TARGET_PLAYER 0 3
 TYPE_CONSUMABLE Poción de salud II 70 1 1 TARGET_PLAYER 0 4
+TYPE_ARMOR Arm_CaballeroAstral 1500 25 19 513
